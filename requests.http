@@ -1,0 +1,27 @@
+### Registrierung (POST)
+POST http://localhost:8000/api/register
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "password": "123",
+  "cpu_id": "0987654321"
+}
+
+### Login (POST)
+POST http://localhost:8000/api/login
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "password": "123",
+  "cpu_id": "0987654321"
+}
+
+> {%
+    client.global.set("access_token", response.body.token);
+%}
+
+### Geschützte Route (GET mit Token)
+GET http://localhost:8000/api/v1
+Authorization: Bearer {{access_token}}

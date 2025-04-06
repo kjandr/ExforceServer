@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title><%= title || "Admin Dashboard" %></title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem;
+            background-color: #f7f9fc;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .nav-buttons {
+            text-align: center;
+            margin: 1.5rem 0 2rem;
+        }
+
+        .nav-buttons a button {
+            margin: 0 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* Button-Stile */
+        .btn-danger {
+            background-color: #d9534f;
+            color: white;
+        }
+
+        .btn-success {
+            background-color: #5cb85c;
+            color: white;
+        }
+
+        .btn-info {
+            background-color: #0275d8;
+            color: white;
+        }
+
+        /* Statusklassen */
+        .status-active {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-inactive {
+            color: red;
+            font-weight: bold;
+        }
+
+        .fail-count {
+            font-weight: bold;
+        }
+
+        /* Tabellen-Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #0a4a7a;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        td button {
+            margin-right: 4px;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Neuer Style für das Filterformular */
+        .filter-form {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .filter-form .filter-input {
+            flex: 1; /* Nimmt die gesamte verfügbare Breite ein */
+            padding: 10px 12px;
+            margin-right: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .filter-form button {
+            padding: 8px 16px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .filter-form .btn-info {
+            background-color: #0275d8;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Neuen Abstand für "Zurücksetzen"-Button hinzufügen */
+        .filter-form a button {
+            margin-left: 8px;
+        }
+
+        /* Hover-Effekte hinzufügen */
+        .btn-info:hover {
+            background-color: #0256a7;
+        }
+
+        .btn-danger:hover {
+            background-color: #b52b27;
+        }
+
+        .btn-success:hover {
+            background-color: #449d44;
+        }
+
+        /* Container für Buttons in Aktionen */
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap; /* Falls Buttons zu breit werden */
+            gap: 8px; /* Abstand zwischen allen Buttons */
+            margin-bottom: 8px; /* Optionaler Abstand nach unten */
+        }
+
+        .action-buttons form {
+            margin: 0; /* Entfernt Standard-Margin von Formularen */
+        }
+
+    </style>
+</head>
+<body>
+    <h1>🔐 <%= title || "Admin Dashboard" %></h1>

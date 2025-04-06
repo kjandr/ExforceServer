@@ -1,0 +1,155 @@
+<%- include('partials/head', { title: "Controller bearbeiten" }) %>
+<%- include('partials/nav') %>
+
+<div class="container" style="min-height: 100vh; padding: 30px 0;">
+    <!-- Überschrift -->
+    <h1 class="text-center mb-4">Controller bearbeiten</h1>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7 col-xl-6" style="max-width: 600px; margin: 0 auto;">
+            <!-- Container mit Abstand vom Rand -->
+            <div style="padding: 0 30px;">
+                <!-- Formular mit zusätzlichem Außenabstand -->
+                <form action="/edit/<%= controller.id %>" method="POST" style="padding: 25px; border: 1px solid #ccc; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 30px; background-color: #f9f9f9;">
+                    <table style="width: 100%;">
+                        <!-- Serial Number -->
+                        <tr>
+                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
+                                <label for="serial_no" class="fw-bold">Serial Number:</label>
+                            </td>
+                            <td style="width: 60%;">
+                                <input type="text" id="serial_no" name="serial_no" class="form-control" required style="padding: 10px;" value="<%= controller.serial_no %>">
+                            </td>
+                        </tr>
+
+                        <!-- Remark -->
+                        <tr>
+                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
+                                <label for="remark" class="fw-bold">Remark:</label>
+                            </td>
+                            <td style="width: 60%;">
+                                <input type="text" id="remark" name="remark" class="form-control" style="padding: 10px;" value="<%= controller.remark || '' %>">
+                            </td>
+                        </tr>
+
+                        <!-- User ID -->
+                        <tr>
+                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
+                                <label for="user_id" class="fw-bold">User ID:</label>
+                            </td>
+                            <td style="width: 60%;">
+                                <input type="number" id="user_id" name="user_id" class="form-control" required style="padding: 10px;" value="<%= controller.user_id %>">
+                            </td>
+                        </tr>
+
+                        <!-- Type -->
+                        <tr>
+                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
+                                <label for="type" class="fw-bold">Type:</label>
+                            </td>
+                            <td style="width: 60%;">
+                                <input type="text" id="type" name="type" class="form-control" required style="padding: 10px;" value="<%= controller.type %>">
+                            </td>
+                        </tr>
+
+                        <!-- UUID -->
+                        <tr>
+                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
+                                <label for="uuid" class="fw-bold">UUID:</label>
+                            </td>
+                            <td style="width: 60%;">
+                                <input type="text" id="uuid" name="uuid" class="form-control" required style="padding: 10px;" value="<%= controller.uuid %>">
+                            </td>
+                        </tr>
+
+                        <!-- Battery Cutoff End -->
+                        <tr>
+                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
+                                <label for="battery_cutoff_end" class="fw-bold">Battery Cutoff End:</label>
+                            </td>
+                            <td style="width: 60%;">
+                                <input type="number" step="0.1" id="battery_cutoff_end" name="battery_cutoff_end" class="form-control" required style="padding: 10px;" value="<%= controller.battery_cutoff_end %>">
+                            </td>
+                        </tr>
+
+                        <!-- Battery Cutoff Start -->
+                        <tr>
+                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
+                                <label for="battery_cutoff_start" class="fw-bold">Battery Cutoff Start:</label>
+                            </td>
+                            <td style="width: 60%;">
+                                <input type="number" step="0.1" id="battery_cutoff_start" name="battery_cutoff_start" class="form-control" required style="padding: 10px;" value="<%= controller.battery_cutoff_start %>">
+                            </td>
+                        </tr>
+
+                        <!-- Battery Cells -->
+                        <tr>
+                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
+                                <label for="battery_cells" class="fw-bold">Battery Cells:</label>
+                            </td>
+                            <td style="width: 60%;">
+                                <input type="number" id="battery_cells" name="battery_cells" class="form-control" required style="padding: 10px;" value="<%= controller.battery_cells %>">
+                            </td>
+                        </tr>
+
+                        <!-- Battery Ah -->
+                        <tr>
+                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
+                                <label for="battery_ah" class="fw-bold">Battery Ah:</label>
+                            </td>
+                            <td style="width: 60%;">
+                                <input type="number" step="0.1" id="battery_ah" name="battery_ah" class="form-control" required style="padding: 10px;" value="<%= controller.battery_ah %>">
+                            </td>
+                        </tr>
+
+                        <!-- Battery Current Max -->
+                        <tr>
+                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
+                                <label for="battery_current_max" class="fw-bold">Battery Current Max:</label>
+                            </td>
+                            <td style="width: 60%;">
+                                <input type="number" id="battery_current_max" name="battery_current_max" class="form-control" required style="padding: 10px;" value="<%= controller.battery_current_max %>">
+                            </td>
+                        </tr>
+
+                        <!-- Battery Current Min -->
+                        <tr>
+                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
+                                <label for="battery_current_min" class="fw-bold">Battery Current Min:</label>
+                            </td>
+                            <td style="width: 60%;">
+                                <input type="number" id="battery_current_min" name="battery_current_min" class="form-control" required style="padding: 10px;" value="<%= controller.battery_current_min %>">
+                            </td>
+                        </tr>
+
+                        <!-- Operating Time Min -->
+                        <tr>
+                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
+                                <label for="operating_time_min" class="fw-bold">Operating Time Min:</label>
+                            </td>
+                            <td style="width: 60%;">
+                                <input type="number" id="operating_time_min" name="operating_time_min" class="form-control" required style="padding: 10px;" value="<%= controller.operating_time_min %>">
+                            </td>
+                        </tr>
+
+                        <!-- Buttons -->
+                        <tr>
+                            <td colspan="2" style="text-align: center; padding-top: 20px;">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <a href="/controller-list" class="btn btn-secondary w-100">Abbrechen</a>
+                                    </div>
+                                    <div class="col-6">
+                                        <button type="submit" class="btn btn-primary w-100">Speichern</button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

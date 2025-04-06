@@ -1,0 +1,13 @@
+<%- include('partials/head', { title: "Fehler" }) %>
+
+<div style="text-align: center; margin-top: 3rem;">
+    <h2 style="color: #d9534f;">🚫 Fehler</h2>
+    <p><strong><%= message || "Ein unbekannter Fehler ist aufgetreten." %></strong></p>
+    <br>
+    <a href="/admin">
+        <button class="btn-info">⬅️ Zurück zum Dashboard</button>
+    </a>
+</div>
+
+</body>
+</html>

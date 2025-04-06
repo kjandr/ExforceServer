@@ -1,0 +1,168 @@
+<%- include('partials/head', { title: "Controller-Liste" }) %>
+<%- include('partials/nav') %>
+
+<div class="container" style="min-height: 100vh; padding: 30px 0;">
+    <!-- Überschrift -->
+    <h1 class="text-center mb-4">Controller-Übersicht</h1>
+
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-8">
+            <!-- Suchfilter -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Filter</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <input
+                                    type="text"
+                                    id="serialFilter"
+                                    class="form-control"
+                                    placeholder="Nach Seriennummer filtern..."
+                                    oninput="filterControllers()"
+                            >
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100" onclick="filterControllers()">Suchen</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <!-- Controller-Liste -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Verfügbare Controller</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Serial Number</th>
+                                <th>Remark</th>
+                                <th>Type</th>
+                                <th>UUID</th>
+                                <th>Aktionen</th>
+                            </tr>
+                            </thead>
+                            <tbody id="controllersTable">
+                            <% controllers.forEach(controller => { %>
+                                <tr class="controller-row">
+                                    <td><%= controller.serial_no %></td>
+                                    <td><%= controller.remark || '-' %></td>
+                                    <td><%= controller.type %></td>
+                                    <td><%= controller.uuid %></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="/edit-controller/<%= controller.id %>" class="btn btn-outline-primary">
+                                                <i class="bi bi-pencil"></i> Bearbeiten
+                                            </a>
+                                            <button
+                                                    class="btn btn-outline-danger"
+                                                    onclick="confirmDelete('<%= controller.id %>', '<%= controller.serial_no %>')"
+                                            >
+                                                <i class="bi bi-trash"></i> Löschen
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }); %>
+
+                            <% if (controllers.length === 0) { %>
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">Keine Controller gefunden.</td>
+                                </tr>
+                            <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Insgesamt: <%= controllers.length %> Controller</span>
+                        <a href="/add-controller" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Neuen Controller hinzufügen
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lösch-Bestätigungsdialog -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Controller löschen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Möchtest du den Controller <strong id="controllerToDelete"></strong> wirklich löschen?</p>
+                <p class="text-muted">Diese Aktion kann nicht rückgängig gemacht werden.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <form id="deleteForm" action="/delete" method="POST" style="display: inline;">
+                    <input type="hidden" id="deleteControllerId" name="id">
+                    <button type="submit" class="btn btn-danger">Löschen</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Filter-Funktion
+    function filterControllers() {
+        const filterValue = document.getElementById('serialFilter').value.toLowerCase();
+        const rows = document.querySelectorAll('#controllersTable .controller-row');
+
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const serialNo = row.querySelector('td:first-child').textContent.toLowerCase();
+            if (serialNo.includes(filterValue)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Zeige "Keine Controller gefunden" wenn keine Übereinstimmungen
+        const noResultsRow = document.querySelector('#controllersTable .no-results');
+        if (visibleCount === 0) {
+            if (!noResultsRow) {
+                const tbody = document.getElementById('controllersTable');
+                const newRow = document.createElement('tr');
+                newRow.className = 'no-results';
+                newRow.innerHTML = '<td colspan="5" class="text-center py-4">Keine passenden Controller gefunden.</td>';
+                tbody.appendChild(newRow);
+            } else {
+                noResultsRow.style.display = '';
+            }
+        } else if (noResultsRow) {
+            noResultsRow.style.display = 'none';
+        }
+    }
+
+    // Lösch-Bestätigung
+    function confirmDelete(id, serialNo) {
+        document.getElementById('controllerToDelete').textContent = serialNo;
+        document.getElementById('deleteControllerId').value = id;
+
+        // Bootstrap Modal öffnen
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        deleteModal.show();
+    }
+</script>
+
+<%- include('partials/footer') %>

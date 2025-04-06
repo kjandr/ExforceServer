@@ -1,0 +1,57 @@
+<form method="GET" action="/admin" class="filter-form">
+    <input type="text" name="filter" placeholder="Nach Email filtern" value="<%= filter || '' %>" class="filter-input" />
+    <button type="submit" class="btn-info">Filtern</button>
+    <a href="/admin"><button type="button" class="btn-danger">Zurücksetzen</button></a>
+</form>
+<br>
+
+<table>
+    <tr>
+        <th>Email</th>
+        <th>Name</th>
+        <th>Rolle</th>
+        <th>Status</th>
+        <th>Fehlversuche</th>
+        <th>Aktionen</th>
+    </tr>
+    <% users.forEach(user => { %>
+        <tr>
+            <td><%= user.email %></td>
+            <td><%= user.salutation %> <%= user.first_name %> <%= user.last_name %></td>
+            <td><%= user.role %></td>
+            <td class="<%= user.active ? 'status-active' : 'status-inactive' %>">
+                <%= user.active ? "✅ Aktiv" : "❌ Inaktiv" %>
+            </td>
+            <td class="fail-count"><%= user.fail_count %></td>
+            <td>
+                <div class="action-buttons">
+                    <!-- Aktivieren/Deaktivieren Button -->
+                    <form method="POST" action="/admin/user/<%= user.active ? "deactivate" : "activate" %>">
+                        <input type="hidden" name="id" value="<%= user.id %>">
+                        <button type="submit" class="<%= user.active ? 'btn-danger' : 'btn-success' %>">
+                            <%= user.active ? "Deaktivieren" : "Aktivieren" %>
+                        </button>
+                    </form>
+
+                    <!-- Löschen Button -->
+                    <form method="POST" action="/admin/user/delete" onsubmit="return confirm('Wirklich löschen?')">
+                        <input type="hidden" name="id" value="<%= user.id %>">
+                        <button type="submit" class="btn-danger">Löschen</button>
+                    </form>
+
+                    <!-- Logs Button -->
+                    <a href="/admin/logs?email=<%= encodeURIComponent(user.email) %>">
+                        <button type="button" class="btn-info">Logs</button>
+                    </a>
+
+                    <!-- Passwort ändern Button -->
+                    <a href="/admin/change-password/<%= user.id %>">
+                        <button type="button" class="btn-info">🔑 Passwort ändern</button>
+                    </a>
+                </div>
+            </td>
+
+
+        </tr>
+    <% }) %>
+</table>
