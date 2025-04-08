@@ -1,5 +1,5 @@
 const express = require("express");
-const { controllerDb, logDb } = require("@databases");
+const { controllerDb } = require("@databases");
 
 module.exports = () => {
     const router = express.Router();
