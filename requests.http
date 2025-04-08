@@ -1,5 +1,5 @@
 ### Registrierung (POST)
-POST http://localhost:8000/api/register
+POST http://localhost:8000/user/register
 Content-Type: application/json
 
 {
@@ -9,7 +9,7 @@ Content-Type: application/json
 }
 
 ### Login (POST)
-POST http://localhost:8000/api/login
+POST http://localhost:8000/user/login
 Content-Type: application/json
 
 {
@@ -24,4 +24,20 @@ Content-Type: application/json
 
 ### Geschützte Route (GET mit Token)
 GET http://localhost:8000/api/v1
+Authorization: Bearer {{access_token}}
+
+### Firmware Check EX8-620
+GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&device=EX8-620
+Authorization: Bearer {{access_token}}
+
+### Firmware Check EX8-560
+GET http://localhost:8000/api/v1/firmware/check?version=1.2.0&12345A&device=EX8-560
+Authorization: Bearer {{access_token}}
+
+### Firmware Check EX8-560 kein UPDATE
+GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&device=EX8-560
+Authorization: Bearer {{access_token}}
+
+### Firmware Check EX8-560 kein DEVICE
+GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&device=EX8-111
 Authorization: Bearer {{access_token}}

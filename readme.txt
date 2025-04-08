@@ -1,3 +1,16 @@
+npm init -y
+npm install express sqlite3 jsonwebtoken body-parser bcrypt
+npm install -g nodemon
+npm install module-alias --save
+
+VS Code Extensions
+Thunder Client
+SQLite
+
+nodemon server.js
+
+
+
 curl -X POST http://localhost/api/register -H "Content-Type: application/json" -d '{"email": "test@test.com", "password": "123", "cpu_id": "0987654321"}'
 curl -X POST http://localhost/api/login -H "Content-Type: application/json" -d '{"email": "test@test.com", "password": "123", "cpu_id": "0987654321"}'
 curl -X GET http://localhost/api/v1 -H "Authorization: Bearer <DEIN-TOKEN>"
@@ -10,7 +23,7 @@ curl -X POST http://localhost/api/request-password-reset -H "Content-Type: appli
 
 
 
-http://192.168.1.110:5000/admin
+http://localhost:8000/admin
 http://localhost:5000/admin?filter=example
 
 

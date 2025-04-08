@@ -1,6 +1,7 @@
 const express = require("express");
+const { controllerDb, logDb } = require("@databases");
 
-module.exports = (logDb, controllerDb) => {
+module.exports = () => {
     const router = express.Router();
 
     router.get('/', (req, res) => {
@@ -13,7 +14,7 @@ module.exports = (logDb, controllerDb) => {
                 console.error(err);
                 return res.status(500).send("Datenbankfehler");
             }
-            res.render('controller-list', { controllers });
+            res.render('admin/controller/list', { controllers });
         });
     });
 
@@ -33,7 +34,7 @@ module.exports = (logDb, controllerDb) => {
             }
 
             // Rendern des Bearbeitungsformulars mit den vorhandenen Daten
-            res.render('controller-edit', { controller });
+            res.render('admin/controller/edit', { controller });
         });
     });
 
@@ -126,7 +127,7 @@ module.exports = (logDb, controllerDb) => {
 
     // Route für die HTML-Seite
     router.get('/add', (req, res) => {
-        res.render('controller-add'); // Rendert die Datei views/controller.ejs
+        res.render('admin/controller/add'); // Rendert die Datei views/admin/controller/add.ejs
     });
 
     // Route für den POST-Aufruf (Daten in Datenbank speichern)
@@ -149,10 +150,11 @@ module.exports = (logDb, controllerDb) => {
         // Beispiel-Query zum Einfügen der Werte in die Datenbank
         const query = `
             INSERT INTO controller (
-                serial_no, remark, user_id, type, uuid, battery_cutoff_end, battery_cutoff_start, battery_cells, battery_ah,
+                serial_no, remark, user_id, type, uuid,
+                battery_cutoff_end, battery_cutoff_start, battery_cells, battery_ah,
                 battery_current_max, battery_current_min, operating_time_min
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
 

@@ -1,0 +1,12 @@
+{
+  "EX8-560": {
+    "version": "1.3.0",
+    "url": "http://localhost:3000/firmware/esp32-firmware-1.3.0.bin",
+    "checksum": "111aaa222bbb333ccc"
+  },
+  "EX8-620": {
+    "version": "2.0.0",
+    "url": "http://localhost:3000/firmware/raspberrypi-firmware-2.0.0.bin",
+    "checksum": "444ddd555eee666fff"
+  }
+}
