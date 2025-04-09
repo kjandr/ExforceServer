@@ -149,7 +149,7 @@ module.exports = () => {
         if (!id) {
             return res.status(400).send("Benutzer-ID ist erforderlich");
         }
-        userDb.run("DELETE FROM users WHERE id = ?", [id], function(err) {
+        userDb.run("DELETE FROM user WHERE id = ?", [id], function(err) {
             if (err) {
                 console.error("Fehler beim Löschen des Benutzers:", err.message);
                 return res.status(500).send("Interner Serverfehler");
