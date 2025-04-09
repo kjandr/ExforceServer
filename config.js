@@ -1,8 +1,5 @@
 const path = require("path");
 
-const HTTP_PORT = 8000;
-const SECRET_KEY = "mein-geheimer-schluessel";
-
 module.exports = {
     databasePaths: {
         user: process.env.USER_DATABASE_PATH || path.join(__dirname, "./data/users.db"),
@@ -11,9 +8,26 @@ module.exports = {
         engine: process.env.ENGINE_DATABASE_PATH || path.join(__dirname, "./data/engine.db"),
     },
 
+    url: (() => {
+        const protocol = process.env.APP_PROTOCOL || 'http';
+        const host = process.env.APP_HOST || 'localhost';
+        const port = process.env.APP_PORT || '8000';
+
+        // Berechne die Basis-URL mit Protokoll, Host und Port (falls angegeben)
+        const portPart = port ? `:${port}` : '';
+        const baseURL = `${protocol}://${host}${portPart}`;
+
+        return {
+            protocol,
+            host,
+            port,
+            portPart, // Falls du den Port getrennt brauchst
+            baseURL   // Gefertigte Basis-URL
+        };
+    })(),
+
     viewsPath: path.join(__dirname, "views"),
     partialsPath: path.join(__dirname, "views", "partials"),
 
-    HTTP_PORT,
-    SECRET_KEY,
+    secret_key: process.env.SECRET_KEY || 'mein-geheimer-schluessel',
 };

@@ -7,7 +7,11 @@ module.exports = () => {
     const router = express.Router();
 
     router.get('/', (req, res) => {
-        res.redirect('/admin/user/list');
+        //res.redirect('/admin/user/list');
+    });
+
+    router.get("/ping", (req, res) => {
+        res.send("User route works!");
     });
 
     router.get("/list", (req, res) => {

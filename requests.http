@@ -22,9 +22,48 @@ Content-Type: application/json
     client.global.set("access_token", response.body.token);
 %}
 
+### Login (POST) fail
+POST http://localhost:8000/user/login
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "password": "122",
+  "cpu_id": "0987654321"
+}
+
+> {%
+    client.global.set("access_token", response.body.token);
+%}
+
+
+### Controller in die Datenbank einfügen
+POST http://localhost:8000/admin/controller/add
+Content-Type: application/json
+Accept: application/json
+
+{
+  "serial_no": "SN1234567890",
+  "remark": "Test_Eintrag",
+  "user_id": 1,
+  "type": "Controller_Type_A",
+  "uuid": "12345A",
+  "battery_cutoff_end": 3.7,
+  "battery_cutoff_start": 4.2,
+  "battery_cells": 6,
+  "battery_ah": 2.4,
+  "battery_current_max": 20,
+  "battery_current_min": 2,
+  "operating_time_min": 120
+}
+
+
+
+
 ### Geschützte Route (GET mit Token)
-GET http://localhost:8000/api/v1
+GET http://localhost:8000/test/?uuid=12345A
 Authorization: Bearer {{access_token}}
+
 
 ### Firmware Check EX8-620
 GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&device=EX8-620
@@ -41,3 +80,17 @@ Authorization: Bearer {{access_token}}
 ### Firmware Check EX8-560 kein DEVICE
 GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&device=EX8-111
 Authorization: Bearer {{access_token}}
+
+
+###
+
+# curl -X POST http://localhost:8000/user/request-password-reset -H "Content-Type: application/json" -d '{"email": "test@test.com"}'
+POST http://localhost:8000/user/request-password-reset
+Content-Type: application/json
+
+{
+  "email": "test@test.com"
+}
+
+###
+

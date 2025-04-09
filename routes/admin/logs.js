@@ -1,21 +1,22 @@
 const express = require("express");
-const { logDb } = require("@databases");
+const { userDb, logDb } = require("@databases");
+
 
 module.exports = () => {
     const router = express.Router();
 
-    router.get("/", (req, res) => {
-        res.redirect('/admin/user/list');
+    router.get("/ping", (req, res) => {
+        res.send("User route works!");
     });
 
     // wird über das WebUI aufegrufen mit der eMail-Adresse
-    router.get("/logs", (req, res) => {
+    router.get("/", (req, res) => {
         const email = req.query.email;
         if (!email) return res.status(400).send("E-Mail fehlt");
 
         logDb.all(
             `SELECT * FROM login_logs WHERE email = ? ORDER BY timestamp DESC LIMIT 50`,
-        [email],
+            [email],
             (err, rows) => {
                 if (err) {
                     console.error("Fehler beim Abrufen der Logs:", err.message);
@@ -28,7 +29,7 @@ module.exports = () => {
     });
 
     // wird über das WebUI aufegrufen
-    router.get("/logs/all", (req, res) => {
+    router.get("/all", (req, res) => {
         logDb.all(
             `SELECT * FROM login_logs ORDER BY timestamp DESC LIMIT 100`,
             [],
@@ -45,7 +46,5 @@ module.exports = () => {
             }
         );
     });
-
-
     return router;
 };

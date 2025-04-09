@@ -25,6 +25,7 @@
   "_moduleAliases": {
     "@config": "./config",
     "@databases": "./databases",
-    "@log": "./log"
+    "@log": "./log",
+    "@middleware": "./middleware"
   }
 }

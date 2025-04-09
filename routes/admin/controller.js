@@ -5,7 +5,7 @@ module.exports = () => {
     const router = express.Router();
 
     router.get('/', (req, res) => {
-        res.redirect('/admin/controller/list');
+        res.redirect('/admin/controller/list?created=true');
     });
 
     router.get('/list', (req, res) => {
@@ -178,14 +178,37 @@ module.exports = () => {
             function (err) {
                 if (err) {
                     console.error('Fehler beim Einfügen in die Datenbank:', err.message);
-                    res.status(500).send('Fehler beim Einfügen der Daten.');
+
+                    // Differenziere zwischen JSON- und HTML-Antwort
+                    if (req.xhr || req.headers.accept?.includes('application/json')) {
+                        // JSON-Antwort senden
+                        return res.status(500).json({
+                            success: false,
+                            message: 'Fehler beim Einfügen der Daten.',
+                            error: process.env.NODE_ENV === 'development' ? err : undefined,
+                        });
+                    }
+
+                    // Redirect zur Fehlerseite bei HTML-Anfragen
                     return res.render('error', {
                         message: 'Fehler beim Speichern der Daten',
                         error: process.env.NODE_ENV === 'development' ? err : {}
                     });
-
                 }
-                res.redirect('/admin/controller/list?created=true');
+
+                /// Erfolgreich eingefügt
+                if (req.xhr || req.headers.accept?.includes('application/json')) {
+                    // JSON-Antwort für API-/XHR-Anfragen
+                    res.status(201).json({
+                        success: true,
+                        message: 'Controller erfolgreich hinzugefügt!',
+                        createdControllerId: this.lastID
+                    });
+                } else {
+                    // Redirect für HTML-Anfragen mit der tatsächlichen ID
+                    //res.redirect(`/admin/controller/edit/${this.lastID}`);
+                    res.redirect('/admin/controller/list?created=true');
+                }
             }
         );
     });

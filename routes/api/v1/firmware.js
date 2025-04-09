@@ -1,7 +1,7 @@
 const express = require("express");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
-const { SECRET_KEY } = require("@config");
+const { secret_key } = require("@config");
 
 module.exports = () => {
     const router = express.Router();
@@ -56,7 +56,7 @@ module.exports = () => {
             return res.sendStatus(401);
         }
 
-        jwt.verify(token, SECRET_KEY, (err, user) => {
+        jwt.verify(token, secret_key, (err, user) => {
             if (err) {
                 return res.sendStatus(403);
             }

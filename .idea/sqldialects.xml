@@ -3,8 +3,11 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/databases.js" dialect="SQLite" />
     <file url="file://$PROJECT_DIR$/log.js" dialect="SQLite" />
-    <file url="file://$PROJECT_DIR$/routes/admin.js" dialect="SQLite" />
+    <file url="file://$PROJECT_DIR$/middleware.js" dialect="SQLite" />
     <file url="file://$PROJECT_DIR$/routes/admin/controller.js" dialect="SQLite" />
+    <file url="file://$PROJECT_DIR$/routes/admin/logs.js" dialect="SQLite" />
+    <file url="file://$PROJECT_DIR$/routes/admin/user.js" dialect="SQLite" />
     <file url="file://$PROJECT_DIR$/routes/user.js" dialect="SQLite" />
+    <file url="file://$PROJECT_DIR$/server.js" dialect="SQLite" />
   </component>
 </project>

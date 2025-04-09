@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 
 const { logFailedAndMaybeBlock } = require("@log");
 const { userDb, logDb} = require("@databases");
-const { SECRET_KEY } = require("@config");
+const { url, secret_key } = require("@config");
 
 module.exports = () => {
     const router = express.Router();
@@ -64,7 +64,7 @@ module.exports = () => {
             // ✅ Erfolgreicher Login
             const token = jwt.sign(
                 { id: user.id, cpu_id: user.cpu_id, email: user.email, role: user.role },
-                SECRET_KEY,
+                secret_key,
                 { expiresIn: "1h" }
             );
 
@@ -88,8 +88,8 @@ module.exports = () => {
                 return res.status(404).json({ message: "Benutzer nicht gefunden" });
             }
 
-            const resetToken = jwt.sign({ id: user.id, email }, SECRET_KEY, { expiresIn: "15m" });
-            const resetLink = `http://192.168.1.110/api/reset-password?token=${resetToken}`;
+            const resetToken = jwt.sign({ id: user.id, email }, secret_key, { expiresIn: "15m" });
+            const resetLink = url.baseURL + `/user/reset-password?token=${resetToken}`;
 
             // Hier würdest du eine E-Mail versenden – wir loggen es nur:
             console.log("🔗 Passwort-Reset-Link:", resetLink);
@@ -103,7 +103,7 @@ module.exports = () => {
         const { token } = req.query;
         if (!token) return res.status(400).send("Token fehlt");
 
-        jwt.verify(token, SECRET_KEY, (err, decoded) => {
+        jwt.verify(token, secret_key, (err, decoded) => {
             if (err) return res.status(403).send("Ungültiger oder abgelaufener Token");
 
             res.render("reset-password", { token }); // du brauchst ein EJS-Template
@@ -118,7 +118,7 @@ module.exports = () => {
             return res.status(400).send("Ungueltige Eingaben");
         }
 
-        jwt.verify(token, SECRET_KEY, async (err, decoded) => {
+        jwt.verify(token, secret_key, async (err, decoded) => {
             if (err) return res.status(403).send("Ungueltiger oder abgelaufener Token");
 
             const hashed = await bcrypt.hash(password, 10);
