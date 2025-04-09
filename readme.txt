@@ -51,7 +51,7 @@ SELECT
     u.created_at AS user_created_at
 FROM engine e
 JOIN controller c ON e.controller_id = c.id
-JOIN users u ON c.user_id = u.id;
+JOIN user u ON c.user_id = u.id;
 
 
 SELECT * FROM engine_user_view WHERE user_id = 42;
@@ -90,7 +90,7 @@ SELECT
     e.remark AS engine_remark
 FROM engine e
 JOIN controller c ON e.controller_id = c.id
-JOIN users u ON c.user_id = u.id
+JOIN user u ON c.user_id = u.id
 ORDER BY c.id, e.created_at;
 
 SELECT * FROM engine_history_view WHERE controller_id = 42;

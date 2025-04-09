@@ -17,7 +17,7 @@ const initializeDatabase = (dbFile, tableSchema, dbName) => {
 
 
 // Datenbankschemas
-const userSchema = `CREATE TABLE IF NOT EXISTS users (
+const userSchema = `CREATE TABLE IF NOT EXISTS user (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     password TEXT NOT NULL,
     salutation TEXT DEFAULT 'Herr',

@@ -24,7 +24,7 @@ module.exports = () => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        userDb.run("INSERT INTO users (password, salutation, last_name, first_name, email, role, active, cpu_id) VALUES (?, COALESCE(?, 'Herr'), COALESCE(?, 'Nachname'), COALESCE(?, 'Vorname'), ?, COALESCE(?, 'user'), COALESCE(?, 0), ?)",
+        userDb.run("INSERT INTO user (password, salutation, last_name, first_name, email, role, active, cpu_id) VALUES (?, COALESCE(?, 'Herr'), COALESCE(?, 'Nachname'), COALESCE(?, 'Vorname'), ?, COALESCE(?, 'user'), COALESCE(?, 0), ?)",
             [hashedPassword, salutation, last_name, first_name, email, role, active, cpu_id],
             function(err) {
                 if (err) {
@@ -44,7 +44,7 @@ module.exports = () => {
         }
 
         // Schritt 1: Nutzer anhand E-Mail holen (egal ob aktiv oder nicht)
-        userDb.get("SELECT * FROM users WHERE email = ?", [email], async (err, user) => {
+        userDb.get("SELECT * FROM user WHERE email = ?", [email], async (err, user) => {
             if (err || !user) {
                 // User nicht vorhanden → loggen & prüfen
                 logFailedAndMaybeBlock(null, email, cpu_id, ip, res);
@@ -83,7 +83,7 @@ module.exports = () => {
         const { email } = req.body;
         if (!email) return res.status(400).json({ message: "E-Mail erforderlich" });
 
-        userDb.get("SELECT id FROM users WHERE email = ?", [email], (err, user) => {
+        userDb.get("SELECT id FROM user WHERE email = ?", [email], (err, user) => {
             if (err || !user) {
                 return res.status(404).json({ message: "Benutzer nicht gefunden" });
             }
@@ -122,7 +122,7 @@ module.exports = () => {
             if (err) return res.status(403).send("Ungueltiger oder abgelaufener Token");
 
             const hashed = await bcrypt.hash(password, 10);
-            userDb.run("UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [hashed, decoded.id], (err) => {
+            userDb.run("UPDATE user SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [hashed, decoded.id], (err) => {
                 if (err) {
                     return res.status(500).send("Fehler beim Speichern");
                 }

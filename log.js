@@ -27,7 +27,7 @@ const logFailedAndMaybeBlock = (userId, email, cpu_id, ip, res) => {
 
                         if (row?.failCount >= 5) {
                             console.log(`[DEBUG] Triggering Deaktivierung für ${email}…`);
-                            logDb.run("UPDATE users SET active = 0 WHERE email = ?", [email], (updateErr) => {
+                            logDb.run("UPDATE user SET active = 0 WHERE email = ?", [email], (updateErr) => {
                                 if (updateErr) {
                                     console.error("Fehler beim Deaktivieren:", updateErr.message);
                                     return res.status(500).json({ message: "Fehler beim Deaktivieren des Benutzers" });

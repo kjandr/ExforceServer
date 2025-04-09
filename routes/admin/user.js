@@ -17,7 +17,7 @@ module.exports = () => {
     router.get("/list", (req, res) => {
         // Den Filterwert aus der Query-Parameter extrahieren
         let filter = req.query.filter || ""; // Standard ist leer
-        let sql = "SELECT * FROM users WHERE email LIKE ? ORDER BY active DESC, email ASC";
+        let sql = "SELECT * FROM user WHERE email LIKE ? ORDER BY active DESC, email ASC";
         let params = [`%${filter}%`]; // LIKE-Muster für Filterung
 
         userDb.all(sql, params, (err, users) => {
@@ -54,8 +54,8 @@ module.exports = () => {
         // Den Filterwert aus der Query-Parameter extrahieren
         const filter = req.query.filter || ""; // Standard: leer
         const sql = filter
-            ? "SELECT * FROM users WHERE active = 1 AND email LIKE ? ORDER BY email ASC"
-            : "SELECT * FROM users WHERE active = 1 ORDER BY email ASC"; // Ohne Filter
+            ? "SELECT * FROM user WHERE active = 1 AND email LIKE ? ORDER BY email ASC"
+            : "SELECT * FROM user WHERE active = 1 ORDER BY email ASC"; // Ohne Filter
         const params = filter ? [`%${filter}%`] : []; // Muster für Filterung
 
         userDb.all(sql, params, (err, users) => {
@@ -100,8 +100,8 @@ module.exports = () => {
         // Den Filterwert aus der Query-Parameter extrahieren
         const filter = req.query.filter || ""; // Standard: leer
         const sql = filter
-            ? "SELECT * FROM users WHERE active = 0 AND email LIKE ? ORDER BY email ASC"
-            : "SELECT * FROM users WHERE active = 0 ORDER BY email ASC"; // Ohne Filter
+            ? "SELECT * FROM user WHERE active = 0 AND email LIKE ? ORDER BY email ASC"
+            : "SELECT * FROM user WHERE active = 0 ORDER BY email ASC"; // Ohne Filter
         const params = filter ? [`%${filter}%`] : []; // Muster für Filterung
 
         userDb.all(sql, params, (err, users) => {
@@ -164,7 +164,7 @@ module.exports = () => {
         if (!id) {
             return res.status(400).send("Benutzer-ID ist erforderlich");
         }
-        userDb.run("UPDATE users SET active = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [id], function(err) {
+        userDb.run("UPDATE user SET active = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [id], function(err) {
             if (err) {
                 console.error("Fehler beim Aktivieren des Benutzers:", err.message);
                 return res.status(500).send("Interner Serverfehler");
@@ -180,7 +180,7 @@ module.exports = () => {
         if (!id) {
             return res.status(400).send("Benutzer-ID ist erforderlich");
         }
-        userDb.run("UPDATE users SET active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [id], function(err) {
+        userDb.run("UPDATE user SET active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [id], function(err) {
             if (err) {
                 console.error("Fehler beim Deaktivieren des Benutzers:", err.message);
                 return res.status(500).send("Interner Serverfehler");
@@ -208,7 +208,7 @@ module.exports = () => {
 
         try {
             const hashed = await bcrypt.hash(newPassword, 10);
-            userDb.run("UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [hashed, id], function (err) {
+            userDb.run("UPDATE user SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [hashed, id], function (err) {
                 if (err) {
                     console.error("Fehler beim Ändern des Passworts:", err.message);
                     return res.status(500).render("error", { message: "Fehler beim Aktualisieren des Passworts." });
