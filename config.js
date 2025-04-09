@@ -30,4 +30,8 @@ module.exports = {
     partialsPath: path.join(__dirname, "views", "partials"),
 
     secret_key: process.env.SECRET_KEY || 'mein-geheimer-schluessel',
+    JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '24h',
+
+    admin_email: process.env.ADMIN_EMAIL || 'admin@janedv.de',
+    admin_password: process.env.ADMIN_PASSWORD || '1234abcd',
 };

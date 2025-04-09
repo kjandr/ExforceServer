@@ -7,19 +7,8 @@ VS Code Extensions
 Thunder Client
 SQLite
 
+node init-admin.js
 nodemon server.js
-
-
-
-curl -X POST http://localhost/api/register -H "Content-Type: application/json" -d '{"email": "test@test.com", "password": "123", "cpu_id": "0987654321"}'
-curl -X POST http://localhost/api/login -H "Content-Type: application/json" -d '{"email": "test@test.com", "password": "123", "cpu_id": "0987654321"}'
-curl -X GET http://localhost/api/v1 -H "Authorization: Bearer <DEIN-TOKEN>"
-curl -X GET http://localhost/api/v1
-
-curl -X GET http://localhost/api/v1 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiY3B1X2lkIjoiMDk4NzY1NDMyMSIsImVtYWlsIjoidGVzdEB0ZXN0LmNvbSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzQyNTkwODE4LCJleHAiOjE3NDI1OTQ0MTh9.KjMpT8JrpQYYxsglkc7cXcj3Ev16neN2uEzWaLVSKbc"
-
-Passwort Reset
-curl -X POST http://localhost/api/request-password-reset -H "Content-Type: application/json" -d '{"email": "test@test.com"}'
 
 
 

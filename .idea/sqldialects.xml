@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/controllers/authController.js" dialect="SQLite" />
     <file url="file://$PROJECT_DIR$/databases.js" dialect="SQLite" />
+    <file url="file://$PROJECT_DIR$/init-admin.js" dialect="SQLite" />
     <file url="file://$PROJECT_DIR$/log.js" dialect="SQLite" />
-    <file url="file://$PROJECT_DIR$/middleware.js" dialect="SQLite" />
+    <file url="file://$PROJECT_DIR$/middleware/auth.js" dialect="SQLite" />
     <file url="file://$PROJECT_DIR$/routes/admin/controller.js" dialect="SQLite" />
     <file url="file://$PROJECT_DIR$/routes/admin/logs.js" dialect="SQLite" />
     <file url="file://$PROJECT_DIR$/routes/admin/user.js" dialect="SQLite" />

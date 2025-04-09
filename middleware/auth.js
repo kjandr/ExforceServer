@@ -1,6 +1,37 @@
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
+const { secret_key } = require('@config');
 const { controllerDb } = require("@databases");
-const { secret_key } = require("@config");
+
+// Middleware zum Überprüfen von JWT-Tokens in Cookies
+const authMiddleware = (req, res, next) => {
+    //console.log("authMiddleware aufgerufen");
+    //console.log("Cookies:", req.cookies);
+
+    // JWT-Token aus dem Cookie holen
+    const token = req.cookies.jwt;
+
+    if (!token) {
+        //console.log("Kein JWT-Cookie gefunden");
+        return res.redirect('/admin/login');
+    }
+
+    try {
+        // Token verifizieren
+        //console.log("Versuche Token zu verifizieren");
+        const decoded = jwt.verify(token, secret_key);
+
+        //console.log("Token erfolgreich verifiziert:", decoded);
+        // Benutzer zur Request hinzufügen
+        req.user = decoded;
+
+        next();
+    } catch (error) {
+        // Bei ungültigem Token zum Login zurückleiten
+        //console.error("Token-Verifizierung fehlgeschlagen:", error.message);
+        res.clearCookie('jwt');
+        return res.redirect('/admin/login');
+    }
+};
 
 // Middleware zum ueberpruefen von JWT
 const authenticateJWT = (req, res, next) => {
@@ -62,4 +93,5 @@ module.exports = {
     authenticateJWT,
     authorizeRole,
     validateUUID,
+    authMiddleware,
 };

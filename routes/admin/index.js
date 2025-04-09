@@ -1,5 +1,6 @@
 const express = require("express");
-const { authenticateJWT , authorizeRole, validateUUID } = require("@middleware");
+const { authenticateJWT , authorizeRole, validateUUID, authMiddleware } = require("@middleware/auth");
+const authController = require('@controllers/authController');
 
 const userRoutes = require("./user");
 const controllerRoutes = require("./controller");
@@ -13,8 +14,13 @@ module.exports = () => {
         next();
     });
 
+    // Login-Routen
+    router.get('/login', authController.getLoginPage);
+    router.post('/login', authController.login);
+    router.post('/logout', authController.logout);
+
     // Middleware für alle Admin-Routen hinzufügen
-    //router.use(authenticateJWT); // Authentifizierung für alle Admin-Routen
+    router.use(authMiddleware); // Authentifizierung für alle Admin-Routen
     //router.use(validateUUID); // UUID-Validierung für alle Admin-Routen
 
     // Admin-Subrouten definieren

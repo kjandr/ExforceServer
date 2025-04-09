@@ -2,10 +2,19 @@ require('module-alias/register');
 
 const express = require("express");
 const bodyParser = require("body-parser");
-const { authenticateJWT, authorizeRole, validateUUID } = require("@middleware");
+const { authenticateJWT, authorizeRole, validateUUID } = require("@middleware/auth");
 const { url, viewsPath, partialsPath } = require("@config");
+const cookieParser = require('cookie-parser');
+const { initializeTables } = require("@databases");
 
+// Express-App erstellen
 const app = express();
+
+// Middleware einrichten
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
 app.set('etag', false);
 app.set('trust proxy', true);
 app.use(bodyParser.json());
@@ -42,6 +51,19 @@ app.get("/test",
 
 //-------------------------------------------------------------------------
 
-app.listen(url.port, () => {
-    console.log(`Server laeuft unter der URL ${url.baseURL}`);
-});
+// Server starten
+async function startServer() {
+    try {
+        // Datenbanktabellen initialisieren
+        await initializeTables();
+
+        // Server starten
+        app.listen(url.port, () => {
+            console.log(`Server laeuft unter der URL ${url.baseURL}`);
+        });
+    } catch (error) {
+        console.error('Fehler beim Starten des Servers:', error);
+    }
+}
+
+startServer();

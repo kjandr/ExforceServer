@@ -1,5 +1,5 @@
 const express = require("express");
-const { authenticateJWT , authorizeRole, validateUUID } = require("@middleware");
+const { authenticateJWT , authorizeRole, validateUUID } = require("@middleware/auth");
 
 const firmwareRoutes = require("./firmware");
 
