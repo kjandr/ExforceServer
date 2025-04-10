@@ -1,170 +1,60 @@
-<%- include(partials + '/head', { title: "Controller-Datenbank" }) %>
+<%- include(partials + '/head', { title: "Neuen Controller hinzufügen" }) %>
 <%- include(partials + '/nav') %>
 
-<div class="container" style="min-height: 100vh; padding: 30px 0;">
-    <!-- Überschrift -->
-    <h1 class="text-center mb-4">Controller-Datenbank bearbeiten</h1>
+<h2 style="margin-top: 1rem;">➕ Neuen Controller anlegen</h2>
 
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-7 col-xl-6" style="max-width: 600px; margin: 0 auto;">
-            <!-- Container mit Abstand vom Rand -->
-            <div style="padding: 0 30px;">
-                <!-- Dropdown für Presets mit abgerundeten Ecken -->
-                <div class="mb-4" style="padding: 15px; border: 1px solid #ccc; border-radius: 10px; background-color: #f9f9f9;">
-                    <table style="width: 100%;">
-                        <tr>
-                            <td style="width: 40%; text-align: right; padding-right: 15px;">
-                                <label for="preset" class="fw-bold">Wähle ein Preset:</label>
-                            </td>
-                            <td style="width: 60%;">
-                                <select id="preset" onchange="applyPreset()" class="form-select" style="padding: 10px;">
-                                    <option value="">Kein Preset ausgewählt</option>
-                                    <option value="preset1">Preset 1</option>
-                                    <option value="preset2">Preset 2</option>
-                                </select>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
+<form method="POST" action="/admin/controller/add" class="edit-form">
+    <label for="preset">Preset auswählen:</label>
+    <select id="preset" onchange="applyPreset()">
+        <option value="">Kein Preset</option>
+        <option value="preset1">Preset 1</option>
+        <option value="preset2">Preset 2</option>
+    </select>
 
-                <!-- Formular mit zusätzlichem Außenabstand -->
-                <form action="/admin/controller/add" method="POST" style="padding: 25px; border: 1px solid #ccc; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 30px; background-color: #f9f9f9;">
-                    <table style="width: 100%;">
-                        <!-- Serial Number -->
-                        <tr>
-                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
-                                <label for="serial_no" class="fw-bold">Serial Number:</label>
-                            </td>
-                            <td style="width: 60%;">
-                                <input type="text" id="serial_no" name="serial_no" class="form-control" required style="padding: 10px;">
-                            </td>
-                        </tr>
+    <label for="serial_no">Seriennummer:</label>
+    <input type="text" id="serial_no" name="serial_no" required>
 
-                        <!-- Remark -->
-                        <tr>
-                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
-                                <label for="remark" class="fw-bold">Remark:</label>
-                            </td>
-                            <td style="width: 60%;">
-                                <input type="text" id="remark" name="remark" class="form-control" style="padding: 10px;">
-                            </td>
-                        </tr>
+    <label for="remark">Bemerkung:</label>
+    <input type="text" id="remark" name="remark">
 
-                        <!-- User ID -->
-                        <tr>
-                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
-                                <label for="user_id" class="fw-bold">User ID:</label>
-                            </td>
-                            <td style="width: 60%;">
-                                <input type="number" id="user_id" name="user_id" class="form-control" required style="padding: 10px;">
-                            </td>
-                        </tr>
+    <label for="user_id">User ID:</label>
+    <input type="number" id="user_id" name="user_id" required>
 
-                        <!-- Type -->
-                        <tr>
-                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
-                                <label for="type" class="fw-bold">Type:</label>
-                            </td>
-                            <td style="width: 60%;">
-                                <input type="text" id="type" name="type" class="form-control" required style="padding: 10px;">
-                            </td>
-                        </tr>
+    <label for="type">Typ:</label>
+    <input type="text" id="type" name="type" required>
 
-                        <!-- UUID -->
-                        <tr>
-                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
-                                <label for="uuid" class="fw-bold">UUID:</label>
-                            </td>
-                            <td style="width: 60%;">
-                                <input type="text" id="uuid" name="uuid" class="form-control" required style="padding: 10px;">
-                            </td>
-                        </tr>
+    <label for="uuid">UUID:</label>
+    <input type="text" id="uuid" name="uuid" required>
 
-                        <!-- Battery Cutoff End -->
-                        <tr>
-                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
-                                <label for="battery_cutoff_end" class="fw-bold">Battery Cutoff End:</label>
-                            </td>
-                            <td style="width: 60%;">
-                                <input type="number" step="0.1" id="battery_cutoff_end" name="battery_cutoff_end" class="form-control" required style="padding: 10px;">
-                            </td>
-                        </tr>
+    <label for="battery_cutoff_end">Battery Cutoff End:</label>
+    <input type="number" step="0.1" id="battery_cutoff_end" name="battery_cutoff_end" required>
 
-                        <!-- Battery Cutoff Start -->
-                        <tr>
-                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
-                                <label for="battery_cutoff_start" class="fw-bold">Battery Cutoff Start:</label>
-                            </td>
-                            <td style="width: 60%;">
-                                <input type="number" step="0.1" id="battery_cutoff_start" name="battery_cutoff_start" class="form-control" required style="padding: 10px;">
-                            </td>
-                        </tr>
+    <label for="battery_cutoff_start">Battery Cutoff Start:</label>
+    <input type="number" step="0.1" id="battery_cutoff_start" name="battery_cutoff_start" required>
 
-                        <!-- Battery Cells -->
-                        <tr>
-                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
-                                <label for="battery_cells" class="fw-bold">Battery Cells:</label>
-                            </td>
-                            <td style="width: 60%;">
-                                <input type="number" id="battery_cells" name="battery_cells" class="form-control" required style="padding: 10px;">
-                            </td>
-                        </tr>
+    <label for="battery_cells">Battery Cells:</label>
+    <input type="number" id="battery_cells" name="battery_cells" required>
 
-                        <!-- Battery Ah -->
-                        <tr>
-                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
-                                <label for="battery_ah" class="fw-bold">Battery Ah:</label>
-                            </td>
-                            <td style="width: 60%;">
-                                <input type="number" step="0.1" id="battery_ah" name="battery_ah" class="form-control" required style="padding: 10px;">
-                            </td>
-                        </tr>
+    <label for="battery_ah">Battery Ah:</label>
+    <input type="number" step="0.1" id="battery_ah" name="battery_ah" required>
 
-                        <!-- Battery Current Max -->
-                        <tr>
-                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
-                                <label for="battery_current_max" class="fw-bold">Battery Current Max:</label>
-                            </td>
-                            <td style="width: 60%;">
-                                <input type="number" id="battery_current_max" name="battery_current_max" class="form-control" required style="padding: 10px;">
-                            </td>
-                        </tr>
+    <label for="battery_current_max">Battery Current Max:</label>
+    <input type="number" id="battery_current_max" name="battery_current_max" required>
 
-                        <!-- Battery Current Min -->
-                        <tr>
-                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
-                                <label for="battery_current_min" class="fw-bold">Battery Current Min:</label>
-                            </td>
-                            <td style="width: 60%;">
-                                <input type="number" id="battery_current_min" name="battery_current_min" class="form-control" required style="padding: 10px;">
-                            </td>
-                        </tr>
+    <label for="battery_current_min">Battery Current Min:</label>
+    <input type="number" id="battery_current_min" name="battery_current_min" required>
 
-                        <!-- Operating Time Min -->
-                        <tr>
-                            <td style="width: 40%; text-align: right; padding: 10px 15px 10px 0;">
-                                <label for="operating_time_min" class="fw-bold">Operating Time Min:</label>
-                            </td>
-                            <td style="width: 60%;">
-                                <input type="number" id="operating_time_min" name="operating_time_min" class="form-control" required style="padding: 10px;">
-                            </td>
-                        </tr>
+    <label for="operating_time_min">Operating Time Min:</label>
+    <input type="number" id="operating_time_min" name="operating_time_min" required>
 
-                        <!-- Submit Button - ZENTRIERT -->
-                        <tr>
-                            <td colspan="2" style="text-align: center; padding-top: 20px;">
-                                <button type="submit" class="btn btn-primary" style="padding: 10px; width: 80%;">In die Datenbank übernehmen</button>
-                            </td>
-                        </tr>
-                    </table>
-                </form>
-            </div>
-        </div>
+    <div class="form-actions">
+        <button type="submit" class="btn-success">💾 Speichern</button>
+        <a href="/admin/controller/list"><button type="button" class="btn-danger">Abbrechen</button></a>
     </div>
-</div>
+</form>
 
 <script>
-    // Presets für Dropdown
+    // Presets anwenden
     const presets = {
         preset1: {
             serial_no: "A13",
@@ -197,11 +87,90 @@
     };
 
     function applyPreset() {
-        const selectedPreset = presets[document.getElementById("preset").value];
-        if (selectedPreset) {
-            Object.keys(selectedPreset).forEach(key => {
-                document.getElementById(key).value = selectedPreset[key];
-            });
-        }
+        const selected = document.getElementById("preset").value;
+        const values = presets[selected];
+        if (!values) return;
+
+        Object.entries(values).forEach(([key, val]) => {
+            const input = document.getElementById(key);
+            if (input) input.value = val;
+        });
     }
 </script>
+
+<style>
+    body {
+        background-color: #1e1e1e;
+        color: #eee;
+        font-family: Arial, sans-serif;
+    }
+
+    h2 {
+        color: #fff;
+    }
+
+    .edit-form {
+        max-width: 500px;
+        padding: 20px;
+        background: #2a2a2a;
+        border-radius: 6px;
+        margin-bottom: 50px;
+    }
+
+    .edit-form label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+
+    .edit-form input,
+    .edit-form select {
+        width: 100%;
+        padding: 8px;
+        margin-top: 4px;
+        border: 1px solid #555;
+        background-color: #333;
+        color: white;
+        border-radius: 4px;
+    }
+
+    .form-actions {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+    .btn-success:hover,
+    .btn-danger:hover {
+        opacity: 0.9;
+    }
+
+    a button {
+        all: unset;
+        cursor: pointer;
+        display: inline-block;
+        text-align: center;
+        padding: 8px 16px;
+        border-radius: 4px;
+    }
+</style>
+
+<%- include(partials + '/footer') %>

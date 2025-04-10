@@ -239,6 +239,52 @@ module.exports = () => {
         );
     });
 
+    // GET: Neues Benutzerformular anzeigen
+    router.get('/add', (req, res) => {
+        res.render('admin/user/add', {
+            title: "Neuen Benutzer hinzufügen"
+        });
+    });
+
+    // POST: Neuen Benutzer speichern
+    router.post('/add', async (req, res) => {
+        const {
+            salutation,
+            first_name,
+            last_name,
+            email,
+            role,
+            active,
+            password
+        } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).render("error", {
+                message: "E-Mail und Passwort sind erforderlich."
+            });
+        }
+
+        try {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const cpu_id = "0987654321"
+            userDb.run(`
+            INSERT INTO user (password, salutation, last_name, first_name, email, role, active, cpu_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `, [hashedPassword, salutation, first_name, last_name, email, role, active, cpu_id], function (err) {
+                if (err) {
+                    console.error("Fehler beim Einfügen:", err.message);
+                    return res.status(500).render("error", { message: "Fehler beim Speichern des Benutzers." });
+                }
+
+                res.redirect("/admin/user/list?created=true");
+            });
+        } catch (e) {
+            console.error("Hash-Fehler:", e);
+            res.status(500).render("error", { message: "Fehler beim Verschlüsseln des Passworts." });
+        }
+    });
+
+
     // GET: Formular anzeigen
     router.get("/change-password/:id", (req, res) => {
         const id = req.params.id;
