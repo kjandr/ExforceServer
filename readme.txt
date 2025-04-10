@@ -1,12 +1,13 @@
 npm init -y
 npm install express sqlite3 jsonwebtoken body-parser bcrypt
-npm install -g nodemon
 npm install module-alias --save
 
 VS Code Extensions
 Thunder Client
 SQLite
 
+npm install -g nodemon
+mkdir data
 node init-admin.js
 nodemon server.js
 
