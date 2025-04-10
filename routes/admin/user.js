@@ -7,7 +7,7 @@ module.exports = () => {
     const router = express.Router();
 
     router.get('/', (req, res) => {
-        //res.redirect('/admin/user/list');
+        res.redirect('/admin/user/list');
     });
 
     router.get("/ping", (req, res) => {
@@ -29,7 +29,7 @@ module.exports = () => {
             const enrichedUsers = [];
             let remaining = users.length;
 
-            if (remaining === 0) return res.render("admin", { users: [], filter, title: "Admin Dashboard" });
+            if (remaining === 0) return res.render("admin/user/list", { users: [], filter, title: "Admin Dashboard" });
 
             users.forEach(user => {
                 logDb.get(
@@ -42,7 +42,7 @@ module.exports = () => {
                         remaining--;
 
                         if (remaining === 0) {
-                            res.render("admin", { users: enrichedUsers, filter, title: "Admin Dashboard" });
+                            res.render("admin/user/list", { users: enrichedUsers, filter, title: "Admin Dashboard" });
                         }
                     }
                 );
@@ -68,7 +68,7 @@ module.exports = () => {
             const enrichedUsers = [];
             let remaining = users.length;
             if (remaining === 0) {
-                return res.render("admin", {
+                return res.render("admin/user/list", {
                     users: [],
                     title: "Aktive Benutzer",
                     filter: filter,
@@ -84,7 +84,7 @@ module.exports = () => {
                         user.fail_count = logErr ? "-" : (row?.fail_count || 0);
                         enrichedUsers.push(user);
                         if (--remaining === 0) {
-                            res.render("admin", {
+                            res.render("admin/user/list", {
                                 users: enrichedUsers,
                                 title: "Aktive Benutzer",
                                 filter: filter, // Filter zur Ansicht übergeben
@@ -115,7 +115,7 @@ module.exports = () => {
             let remaining = users.length;
 
             if (remaining === 0) {
-                return res.render("admin", {
+                return res.render("admin/user/list", {
                     users: [],
                     title: "Inaktive Benutzer",
                     filter: filter,
@@ -131,7 +131,7 @@ module.exports = () => {
                         user.fail_count = logErr ? "-" : (row?.fail_count || 0);
                         enrichedUsers.push(user);
                         if (--remaining === 0) {
-                            res.render("admin", {
+                            res.render("admin/user/list", {
                                 users: enrichedUsers,
                                 title: "Inaktive Benutzer",
                                 filter: filter, // Filter zur Ansicht übergeben
@@ -187,6 +187,52 @@ module.exports = () => {
             }
             res.redirect("/admin/user");
         });
+    });
+
+    // Route zum Editieren eines Users (GET)
+    router.get('/edit/:id', (req, res) => {
+        const userId = req.params.id;
+
+        // User-Daten aus der Datenbank holen
+        userDb.get("SELECT * FROM user WHERE id = ?", [userId], (err, user) => {
+            if (err) {
+                console.error("Datenbankfehler:", err);
+                return res.status(500).send("Datenbankfehler beim Abrufen des Users");
+            }
+
+            if (!user) {
+                return res.status(404).send("User nicht gefunden");
+            }
+
+            // Den User-Edit-View rendern
+            res.render('admin/user/edit', { user });
+        });
+    });
+
+    // Route zum Speichern der Änderungen (POST)
+    router.post('/edit/:id', (req, res) => {
+        const userId = req.params.id;
+        const { username, email, role, status } = req.body;
+
+        // Aktualisieren des Users in der Datenbank
+        userDb.run(
+            `UPDATE user SET 
+                username = ?, 
+                email = ?, 
+                role = ?, 
+                status = ?, 
+                updated_at = CURRENT_TIMESTAMP
+             WHERE id = ?`,
+            [username, email, role, status, userId],
+            function(err) {
+                if (err) {
+                    console.error("Fehler beim Aktualisieren des Users:", err);
+                    return res.status(500).send("Datenbankfehler beim Aktualisieren");
+                }
+
+                res.redirect('/admin/user/list?updated=true'); // Erfolgsmeldung
+            }
+        );
     });
 
     // GET: Formular anzeigen
