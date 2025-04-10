@@ -34,7 +34,7 @@ module.exports = () => {
             }
 
             // Rendern des Bearbeitungsformulars mit den vorhandenen Daten
-            res.render('admin/controller/edit', { controller });
+            res.render('admin/controller/edit', { title: "Controller bearbeiten", controller });
         });
     });
 

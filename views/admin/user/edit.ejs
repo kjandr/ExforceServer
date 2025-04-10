@@ -1,42 +1,109 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User bearbeiten</title>
-    <link rel="stylesheet" href="/styles/admin.css"> <!-- Falls CSS vorhanden -->
-</head>
-<body>
-<div class="container">
-    <h1>User bearbeiten</h1>
-    <form action="/admin/user/edit/<%= user.id %>" method="POST">
-        <div class="form-group">
-            <label for="username">Benutzername:</label>
-            <input type="text" id="username" name="username" value="<%= user.username %>" required>
-        </div>
-        <div class="form-group">
-            <label for="email">E-Mail:</label>
-            <input type="email" id="email" name="email" value="<%= user.email %>" required>
-        </div>
-        <div class="form-group">
-            <label for="role">Rolle:</label>
-            <select id="role" name="role" required>
-                <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Admin</option>
-                <option value="user" <%= user.role === 'user' ? 'selected' : '' %>>User</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="status">Status:</label>
-            <select id="status" name="status" required>
-                <option value="active" <%= user.status === 'active' ? 'selected' : '' %>>Aktiv</option>
-                <option value="inactive" <%= user.status === 'inactive' ? 'selected' : '' %>>Inaktiv</option>
-            </select>
-        </div>
-        <div class="form-actions">
-            <button type="submit">Speichern</button>
-            <a href="/admin/user/list" class="button">Abbrechen</a>
-        </div>
-    </form>
-</div>
-</body>
-</html>
+<%- include(partials + '/head') %>
+<%- include(partials + '/nav') %>
+
+<h2 style="margin-top: 1rem;">✏️ Benutzer bearbeiten</h2>
+
+<form method="POST" action="/admin/user/edit/<%= user.id %>" class="edit-form">
+    <label for="salutation">Anrede:</label>
+    <input type="text" id="salutation" name="salutation" value="<%= user.salutation %>" required>
+
+    <label for="first_name">Vorname:</label>
+    <input type="text" id="first_name" name="first_name" value="<%= user.first_name %>" required>
+
+    <label for="last_name">Nachname:</label>
+    <input type="text" id="last_name" name="last_name" value="<%= user.last_name %>" required>
+
+    <label for="email">E-Mail:</label>
+    <input type="email" id="email" name="email" value="<%= user.email %>" required>
+
+    <label for="role">Rolle:</label>
+    <select id="role" name="role">
+        <option value="user" <%= user.role === 'user' ? 'selected' : '' %>>User</option>
+        <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Admin</option>
+    </select>
+
+    <label for="active">Status:</label>
+    <select id="active" name="active">
+        <option value="1" <%= user.active ? 'selected' : '' %>>Aktiv</option>
+        <option value="0" <%= !user.active ? 'selected' : '' %>>Inaktiv</option>
+    </select>
+
+    <div class="form-actions">
+        <button type="submit" class="btn-success">💾 Speichern</button>
+        <a href="/admin/user/list"><button type="button" class="btn-danger">Abbrechen</button></a>
+    </div>
+</form>
+
+<style>
+    body {
+        background-color: #1e1e1e;
+        color: #eee;
+        font-family: Arial, sans-serif;
+    }
+
+    h2 {
+        color: #fff;
+    }
+
+    .edit-form {
+        max-width: 500px;
+        padding: 20px;
+        background: #2a2a2a;
+        border-radius: 6px;
+    }
+
+    .edit-form label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+
+    .edit-form input,
+    .edit-form select {
+        width: 100%;
+        padding: 8px;
+        margin-top: 4px;
+        border: 1px solid #555;
+        background-color: #333;
+        color: white;
+        border-radius: 4px;
+    }
+
+    .form-actions {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+    .btn-success:hover,
+    .btn-danger:hover {
+        opacity: 0.9;
+    }
+
+    a button {
+        all: unset;
+        cursor: pointer;
+        display: inline-block;
+        text-align: center;
+        padding: 8px 16px;
+        border-radius: 4px;
+    }
+</style>

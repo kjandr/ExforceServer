@@ -1,5 +1,5 @@
 const express = require("express");
-const { authenticateJWT , authorizeRole, validateUUID, authMiddleware } = require("@middleware/auth");
+const { authMiddleware, localNetworkOnly } = require("@middleware/auth");
 const authController = require('@controllers/authController');
 
 const userRoutes = require("./user");
@@ -13,6 +13,9 @@ module.exports = () => {
         console.log(`Admin-Route aufgerufen: ${req.method} ${req.originalUrl}`);
         next();
     });
+
+    // Erst die lokale Netzwerk-Prüfung für alle Admin-Routen
+    router.use(localNetworkOnly);
 
     // Login-Routen
     router.get('/login', authController.getLoginPage);

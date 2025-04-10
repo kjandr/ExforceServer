@@ -205,32 +205,36 @@ module.exports = () => {
             }
 
             // Den User-Edit-View rendern
-            res.render('admin/user/edit', { user });
+            res.render("admin/user/edit", {
+                title: "Benutzer bearbeiten",
+                user
+            });
+
         });
     });
 
     // Route zum Speichern der Änderungen (POST)
     router.post('/edit/:id', (req, res) => {
         const userId = req.params.id;
-        const { username, email, role, status } = req.body;
+        const {salutation, first_name, last_name, email, role, active} = req.body;
 
-        // Aktualisieren des Users in der Datenbank
         userDb.run(
-            `UPDATE user SET 
-                username = ?, 
-                email = ?, 
-                role = ?, 
-                status = ?, 
-                updated_at = CURRENT_TIMESTAMP
+            `UPDATE user SET
+                 salutation = ?,
+                 first_name = ?,
+                 last_name = ?,
+                 email = ?,
+                 role = ?,
+                 active = ?,
+                 updated_at = CURRENT_TIMESTAMP
              WHERE id = ?`,
-            [username, email, role, status, userId],
-            function(err) {
+            [salutation, first_name, last_name, email, role, active, userId],
+            function (err) {
                 if (err) {
                     console.error("Fehler beim Aktualisieren des Users:", err);
                     return res.status(500).send("Datenbankfehler beim Aktualisieren");
                 }
-
-                res.redirect('/admin/user/list?updated=true'); // Erfolgsmeldung
+                res.redirect('/admin/user/list?updated=true');
             }
         );
     });

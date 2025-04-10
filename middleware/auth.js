@@ -89,9 +89,41 @@ const validateUUID = (req, res, next) => {
     );
 };
 
+const localNetworkOnly = (req, res, next) => {
+    let clientIp = req.ip || req.connection.remoteAddress;
+
+    console.log("Client-IP:", clientIp);
+
+    // IPv4-mapped IPv6 Adressen behandeln (::ffff:127.0.0.1)
+    if (clientIp.includes('::ffff:')) {
+        clientIp = clientIp.replace('::ffff:', '');
+        console.log("Normalisierte Client-IP:", clientIp);
+    }
+
+    // Liste der erlaubten IP-Bereiche
+    const allowedIPs = [
+        '127.0.0.1',      // localhost
+        '::1',            // IPv6 localhost
+        '192.168.1.',     // Typisches Heimnetzwerk
+        '192.168.4.',     // Typisches Heimnetzwerk
+        '10.'             // Private IP-Bereiche
+    ];
+
+    // Prüfen ob die Client-IP in der erlaubten Liste ist
+    const isAllowed = allowedIPs.some(ip => clientIp.startsWith(ip));
+
+    if (isAllowed) {
+        next(); // Zugriff erlauben
+    } else {
+        console.log(`Unerlaubter Zugriff von IP: ${clientIp}`);
+        return res.status(403).send('Zugriff verweigert. Nur aus dem lokalen Netzwerk erlaubt.');
+    }
+};
+
 module.exports = {
     authenticateJWT,
     authorizeRole,
     validateUUID,
     authMiddleware,
+    localNetworkOnly,
 };

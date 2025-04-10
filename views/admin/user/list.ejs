@@ -1,3 +1,136 @@
-<%- include(partials + '/head') %>
-<%- include(partials + '/nav') %>
-<%- include(partials + '/table', { users }) %>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <%- include(partials + '/head') %>
+
+    <!-- 🎨 Dark Style -->
+    <style>
+        body {
+            background: #1e1e1e;
+            color: #eee;
+        }
+
+        table.dataTable {
+            background-color: #2e2e2e;
+            color: white;
+        }
+
+        .dt-toolbar {
+            margin-bottom: 1rem;
+        }
+
+        .dt-btn {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 6px 12px;
+            margin-right: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .dt-btn:hover {
+            background-color: #555;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+        }
+    </style>
+</head>
+
+<body class="dark-mode">
+    <%- include(partials + '/nav') %>
+
+    <!-- 🔳 Toolbar -->
+    <div class="dt-toolbar">
+        <button id="btn-new" class="dt-btn">➕ Neuer Benutzer</button>
+        <button id="btn-edit" class="dt-btn">✏️ Bearbeiten</button>
+        <button id="btn-delete" class="dt-btn">🗑️ Löschen</button>
+    </div>
+
+    <!-- 📄 Tabelle -->
+    <table id="userTable" class="display cell-border stripe" style="width:100%">
+        <thead>
+        <tr>
+            <th style="display:none;">ID</th> <!-- versteckt -->
+            <th>Email</th>
+            <th>Name</th>
+            <th>Rolle</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        <% users.forEach(user => { %>
+            <tr>
+                <td style="display:none;"><%= user.id %></td>
+                <td><%= user.email %></td>
+                <td><%= user.salutation %> <%= user.first_name %> <%= user.last_name %></td>
+                <td><%= user.role %></td>
+                <td><%= user.active ? '✅ Aktiv' : '❌ Inaktiv' %></td>
+            </tr>
+        <% }) %>
+        </tbody>
+    </table>
+
+    <!-- 📦 DataTables + Select + Buttons -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/select/1.7.0/css/select.dataTables.min.css">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/select/1.7.0/js/dataTables.select.min.js"></script>
+
+    <!-- ⚙️ Init mit ID -->
+    <script>
+        $(document).ready(function () {
+            const table = $('#userTable').DataTable({
+                select: 'single',
+                dom: 'Bfrtip',
+                buttons: [],
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/de-DE.json"
+                },
+                columnDefs: [
+                    { targets: 0, visible: false } // ID-Spalte ausblenden
+                ]
+            });
+
+            // ➕ Neuer Benutzer
+            $('#btn-new').on('click', () => {
+                window.location.href = '/admin/user/add';
+            });
+
+            // ✏️ Bearbeiten
+            $('#btn-edit').on('click', () => {
+                const row = table.row({ selected: true }).data();
+                if (!row) return alert("Bitte eine Zeile auswählen");
+                const userId = row[0]; // erste Spalte = ID
+                window.location.href = `/admin/user/edit/${userId}`;
+            });
+
+            // 🗑️ Löschen
+            $('#btn-delete').on('click', () => {
+                const row = table.row({ selected: true }).data();
+                if (!row) return alert("Bitte eine Zeile auswählen");
+                const userId = row[0];
+                if (confirm("Wirklich löschen?")) {
+                    fetch(`/admin/user/delete`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `id=${encodeURIComponent(userId)}`
+                    }).then(() => window.location.reload());
+                }
+            });
+        });
+    </script>
+
+
+<!-- Dark Mode Footer (ohne Bootstrap's bg-light) -->
+<%- include(partials + '/footer') %>
+</body>
+</html>
