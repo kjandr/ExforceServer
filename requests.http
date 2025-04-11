@@ -3,7 +3,7 @@
 
 ### Registrierung (POST)
 # curl -X POST http://localhost:8000/user/register -H "Content-Type: application/json" -d '{"email": "test@test.com", "password": "123", "cpu_id": "0987654321"}'
-POST http://localhost:8000/user/register
+POST http://localhost:8000/api/v1/user/register
 Content-Type: application/json
 
 {"email": "test@test.com", "password": "123", "cpu_id": "0987654321"}
@@ -13,7 +13,7 @@ Content-Type: application/json
 
 ### Login (POST)
 # curl -X POST http://localhost:8000/user/login -H "Content-Type: application/json" -d '{"email": "test@test.com", "password": "123", "cpu_id": "0987654321"}'
-POST http://localhost:8000/user/login
+POST http://localhost:8000/api/v1/user/login
 Content-Type: application/json
 
 {"email": "test@test.com", "password": "123", "cpu_id": "0987654321"}
@@ -26,7 +26,7 @@ Content-Type: application/json
 
 ### Login (POST) fail
 # curl -X POST http://localhost:8000/user/login -H "Content-Type: application/json" -d '{"email": "test@test.com", "password": "123", "cpu_id": "0987654321"}'
-POST http://localhost:8000/user/login
+POST http://localhost:8000/api/v1/user/login
 Content-Type: application/json
 
 {"email": "test@test.com", "password": "122", "cpu_id": "0987654321"}
@@ -38,13 +38,13 @@ Content-Type: application/json
 
 ### Controller in die Datenbank einfügen
 # curl -X POST "http://localhost:8000/admin/controller/add" -H "Content-Type: application/json" -H "Accept: application/json" -d '{"serial_no": "SN1234567890","remark": "Test_Eintrag","user_id": 1,"type": "Controller_Type_A","uuid": "12345A","battery_cutoff_end": 3.7,"battery_cutoff_start": 4.2,"battery_cells": 6,"battery_ah": 2.4,"battery_current_max": 20,"battery_current_min": 2,"operating_time_min": 120}
-POST http://localhost:8000/admin/controller/add
+POST http://localhost:8000/api/v1/controller/add
+Authorization: Bearer {{access_token}}
 Content-Type: application/json
-Accept: application/json
 
-{"serial_no": "SN1234567890", "remark": "Test_Eintrag", "user_id": 1, "type": "Controller_Type_A", "uuid": "12345A",
+{"serial_no": "SN1234567890", "remark": "Test_Eintrag", "user_id": -1, "type": "EX8-560", "uuid": "12345A",
   "battery_cutoff_end": 3.7, "battery_cutoff_start": 4.2, "battery_cells": 6, "battery_ah": 2.4, "battery_current_max": 20,
-  "battery_current_min": 2, "operating_time_min": 120}
+  "battery_current_min": 2, "operating_time_min": 0}
 
 
 
@@ -78,8 +78,7 @@ Authorization: Bearer {{access_token}}
 
 ###
 # curl -X POST http://localhost:8000/user/request-password-reset -H "Content-Type: application/json" -d '{"email": "test@test.com"}'
-POST http://localhost:8000/user/request-password-reset
+POST http://localhost:8000/api/v1/user/request-password-reset
 Content-Type: application/json
 
 {"email": "test@test.com"}
-

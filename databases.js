@@ -81,7 +81,7 @@ const controllerSchema = `CREATE TABLE IF NOT EXISTS controller (
     remark TEXT,
     user_id INTEGER,
     type TEXT NOT NULL,
-    uuid TEXT NOT NULL,
+    uuid TEXT NOT NULL UNIQUE,
     battery_cutoff_end FLOAT NOT NULL,
     battery_cutoff_start FLOAT NOT NULL,
     battery_cells INTEGER NOT NULL,

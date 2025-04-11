@@ -89,7 +89,7 @@ module.exports = () => {
             }
 
             const resetToken = jwt.sign({ id: user.id, email }, secret_key, { expiresIn: "15m" });
-            const resetLink = url.baseURL + `/user/reset-password?token=${resetToken}`;
+            const resetLink = url.baseURL + `/api/v1/user/reset-password?token=${resetToken}`;
 
             // Hier würdest du eine E-Mail versenden – wir loggen es nur:
             console.log("🔗 Passwort-Reset-Link:", resetLink);
@@ -106,7 +106,7 @@ module.exports = () => {
         jwt.verify(token, secret_key, (err, decoded) => {
             if (err) return res.status(403).send("Ungültiger oder abgelaufener Token");
 
-            res.render("reset-password", { token }); // du brauchst ein EJS-Template
+            res.render("api/v1/user/reset-password", { token }); // du brauchst ein EJS-Template
         });
     });
 
@@ -130,7 +130,6 @@ module.exports = () => {
             });
         });
     });
-
 
     return router;
 };

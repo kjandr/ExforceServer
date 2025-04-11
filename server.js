@@ -29,9 +29,6 @@ app.locals.partials = partialsPath;
 
 //-------------------------------------------------------------------------
 
-const userRoutes = require("./routes/user")();
-app.use("/user", userRoutes);
-
 const apiV1Routes = require("./routes/api/v1/index")();
 app.use("/api/v1", apiV1Routes);
 

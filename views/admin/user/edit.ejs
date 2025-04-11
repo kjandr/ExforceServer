@@ -30,6 +30,7 @@
 
     <div class="form-actions">
         <button type="submit" class="btn-success">💾 Speichern</button>
+        <a href="/admin/user/change-password/<%= user.id %>"><button type="button" class="btn-primary">🔑 Passwort ändern</button></a>
         <a href="/admin/user/list"><button type="button" class="btn-danger">Abbrechen</button></a>
     </div>
 </form>
@@ -84,6 +85,15 @@
         border-radius: 4px;
     }
 
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
     .btn-danger {
         background-color: #dc3545;
         border: none;
@@ -94,6 +104,7 @@
     }
 
     .btn-success:hover,
+    .btn-primary:hover,
     .btn-danger:hover {
         opacity: 0.9;
     }

@@ -290,7 +290,7 @@ module.exports = () => {
         const id = req.params.id;
         if (!id) return res.status(400).render("error", { message: "Benutzer-ID fehlt" });
 
-        res.render("change-password", { id });
+        res.render("admin/user/change-password", { id });
     });
 
     // POST: Passwort speichern
