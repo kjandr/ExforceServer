@@ -14,6 +14,23 @@ module.exports = () => {
         res.send("User route works!");
     });
 
+    router.get('/list2', (req, res) => {
+        userDb.all("SELECT * FROM user", (err, users) => {
+            if (err) {
+                console.error("Fehler beim Laden der Benutzer:", err.message);
+                return res.status(500).send("Fehler beim Abrufen der Benutzer");
+            }
+
+            console.log("➡️ Benutzer gefunden:", users.length);
+            res.render("admin/user/list2", {
+                title: "Liste 2",
+                users // <--- wichtig!
+            });
+        });
+    });
+
+
+
     router.get("/list", (req, res) => {
         // Den Filterwert aus der Query-Parameter extrahieren
         let filter = req.query.filter || ""; // Standard ist leer

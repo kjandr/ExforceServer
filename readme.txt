@@ -11,7 +11,7 @@ mkdir data
 node init-admin.js
 nodemon server.js
 
-
+npm install axios
 
 http://localhost:8000/admin
 http://localhost:5000/admin?filter=example

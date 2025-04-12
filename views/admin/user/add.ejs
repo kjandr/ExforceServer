@@ -1,115 +1,51 @@
-<%- include(partials + '/head', { title: "Benutzer hinzufügen" }) %>
-<%- include(partials + '/nav') %>
+<!DOCTYPE html>
+<html lang="de">
 
-<h2 style="margin-top: 1rem;">➕ Neuen Benutzer anlegen</h2>
+<!-- 🎨 Dark Style -->
+<link rel="stylesheet" href="/css/styles.css">
 
-<form method="POST" action="/admin/user/add" class="edit-form">
-    <label for="salutation">Anrede:</label>
-    <input type="text" id="salutation" name="salutation" required>
+<%- include(partials + '/head', { title: "Benutzer bearbeiten" }) %>
 
-    <label for="first_name">Vorname:</label>
-    <input type="text" id="first_name" name="first_name" required>
+<body class="dark-mode">
+    <%- include(partials + '/nav') %>
 
-    <label for="last_name">Nachname:</label>
-    <input type="text" id="last_name" name="last_name" required>
+    <div class="container py-4">
 
-    <label for="email">E-Mail:</label>
-    <input type="email" id="email" name="email" required>
+        <form method="POST" action="/admin/user/add" class="edit-form">
+            <label for="salutation">Anrede:</label>
+            <input type="text" id="salutation" name="salutation" required>
 
-    <label for="password">Passwort:</label>
-    <input type="password" id="password" name="password" required>
+            <label for="first_name">Vorname:</label>
+            <input type="text" id="first_name" name="first_name" required>
 
-    <label for="role">Rolle:</label>
-    <select id="role" name="role">
-        <option value="user">User</option>
-        <option value="admin">Admin</option>
-    </select>
+            <label for="last_name">Nachname:</label>
+            <input type="text" id="last_name" name="last_name" required>
 
-    <label for="active">Status:</label>
-    <select id="active" name="active">
-        <option value="1">Aktiv</option>
-        <option value="0">Inaktiv</option>
-    </select>
+            <label for="email">E-Mail:</label>
+            <input type="email" id="email" name="email" required>
 
-    <div class="form-actions">
-        <button type="submit" class="btn-success">💾 Speichern</button>
-        <a href="/admin/user/list"><button type="button" class="btn-danger">Abbrechen</button></a>
+            <label for="password">Passwort:</label>
+            <input type="password" id="password" name="password" required>
+
+            <label for="role">Rolle:</label>
+            <select id="role" name="role">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+            </select>
+
+            <label for="active">Status:</label>
+            <select id="active" name="active">
+                <option value="1">Aktiv</option>
+                <option value="0">Inaktiv</option>
+            </select>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-success">💾 Speichern</button>
+                <a href="/admin/user/list"><button type="button" class="btn-danger">Abbrechen</button></a>
+            </div>
+        </form>
     </div>
-</form>
 
-<!-- Styles wie edit.ejs -->
-<style>
-    body {
-        background-color: #1e1e1e;
-        color: #eee;
-        font-family: Arial, sans-serif;
-    }
+    <%- include(partials + '/footer') %>
+</body>
 
-    h2 {
-        color: #fff;
-    }
-
-    .edit-form {
-        max-width: 500px;
-        padding: 20px;
-        background: #2a2a2a;
-        border-radius: 6px;
-    }
-
-    .edit-form label {
-        display: block;
-        margin-top: 10px;
-        font-weight: bold;
-    }
-
-    .edit-form input,
-    .edit-form select {
-        width: 100%;
-        padding: 8px;
-        margin-top: 4px;
-        border: 1px solid #555;
-        background-color: #333;
-        color: white;
-        border-radius: 4px;
-    }
-
-    .form-actions {
-        margin-top: 20px;
-        display: flex;
-        gap: 10px;
-    }
-
-    .btn-success {
-        background-color: #28a745;
-        border: none;
-        color: white;
-        padding: 8px 16px;
-        cursor: pointer;
-        border-radius: 4px;
-    }
-
-    .btn-danger {
-        background-color: #dc3545;
-        border: none;
-        color: white;
-        padding: 8px 16px;
-        cursor: pointer;
-        border-radius: 4px;
-    }
-
-    .btn-success:hover,
-    .btn-danger:hover {
-        opacity: 0.9;
-    }
-
-    a button {
-        all: unset;
-        cursor: pointer;
-        display: inline-block;
-        text-align: center;
-        padding: 8px 16px;
-        border-radius: 4px;
-    }
-</style>
-
-<%- include(partials + '/footer') %>

@@ -1,10 +1,31 @@
 <div class="nav-buttons">
-    <a href="/admin"><button class="btn-info">👥 Alle Benutzer</button></a>
-    <a href="/admin/user/active"><button class="btn-success">🟢 Aktive Benutzer</button></a>
-    <a href="/admin/user/inactive"><button class="btn-danger">🔴 Inaktive Benutzer</button></a>
-    <a href="/admin/logs/all"><button class="btn-info">📋 Alle Logs</button></a>
-    <a href="/admin/controller/list"><button class="btn-success">⚙️ Alle Controller</button></a>
-    <form action="/admin/logout" method="POST" style="display: inline;">
-        <button type="submit" class="btn-danger">🔴 Logout</button>
-    </form>
+    <a href="/admin"><button class="dt-btn">👥 Alle Benutzer</button></a>
+    <a href="/admin/user/active"><button class="dt-btn">🟢 Aktive Benutzer</button></a>
+    <a href="/admin/user/inactive"><button class="dt-btn">🔴 Inaktive Benutzer</button></a>
+    <a href="/admin/logs/all"><button class="dt-btn">📋 Alle Logs</button></a>
+    <a href="/admin/controller/list"><button class="dt-btn">⚙️ Alle Controller</button></a>
+    <a href="#"><button class="dt-btn" id="logout-btn">🔴 Logout</button></a>
 </div>
+<script>
+    document.getElementById('logout-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        fetch('/admin/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+            // Optional: body falls notwendig, z.B. CSRF-Token etc.
+        })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/admin/login'; // oder eine andere Seite
+                } else {
+                    alert('Logout fehlgeschlagen');
+                }
+            })
+            .catch(error => {
+                console.error('Fehler beim Logout:', error);
+                alert('Ein Fehler ist aufgetreten');
+            });
+    });
+</script>

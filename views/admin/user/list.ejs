@@ -1,81 +1,53 @@
 <!DOCTYPE html>
 <html lang="de">
+
+<!-- 🎨 Dark Style -->
+<link rel="stylesheet" href="/css/styles.css">
+
 <head>
-    <%- include(partials + '/head') %>
-
-    <!-- 🎨 Dark Style -->
-    <style>
-        body {
-            background: #1e1e1e;
-            color: #eee;
-        }
-
-        table.dataTable {
-            background-color: #2e2e2e;
-            color: white;
-        }
-
-        .dt-toolbar {
-            margin-bottom: 0.5rem; /* Reduzierter Abstand */
-        }
-
-        .dt-btn {
-            background-color: #333;
-            color: #fff;
-            border: 1px solid #555;
-            padding: 6px 12px;
-            margin-right: 5px;
-            cursor: pointer;
-            border-radius: 3px;
-        }
-
-        .dt-btn:hover {
-            background-color: #555;
-        }
-
-        .dataTables_wrapper .dataTables_filter input {
-            background: #333;
-            color: white;
-            border: 1px solid #555;
-            margin-bottom: 20px; /* Abstand nach unten */
-        }
-
-    </style>
+    <%- include(partials + '/head', { title: "Benutzer-Liste" }) %>
+    <!-- Bootstrap CSS laden, wenn du es benötigst -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <!-- Eigene Dark Mode Overrides (sollten nach Bootstrap geladen werden) -->
 </head>
 
 <body class="dark-mode">
     <%- include(partials + '/nav') %>
 
-    <!-- 🔳 Toolbar -->
-    <div class="dt-toolbar">
-        <button id="btn-new" class="dt-btn">➕ Neuer Benutzer</button>
-        <button id="btn-edit" class="dt-btn">✏️ Bearbeiten</button>
-        <button id="btn-delete" class="dt-btn">🗑️ Löschen</button>
-    </div>
+    <div class="container py-4">
+        <h2>🔌 Benutzer-Übersicht</h2>
 
-    <!-- 📄 Tabelle -->
-    <table id="userTable" class="display cell-border stripe" style="width:100%">
-        <thead>
-        <tr>
-            <th style="display:none;">ID</th> <!-- versteckt -->
-            <th>Email</th>
-            <th>Name</th>
-            <th>Rolle</th>
-            <th>Status</th>
-        </tr>
-        </thead>
-        <tbody>
-        <% users.forEach(user => { %>
+        <!-- 🔳 Toolbar -->
+        <div class="dt-toolbar">
+            <button id="btn-new" class="dt-btn">➕ Neuer Benutzer</button>
+            <button id="btn-edit" class="dt-btn">✏️ Bearbeiten</button>
+            <button id="btn-delete" class="dt-btn">🗑️ Löschen</button>
+        </div>
+
+        <!-- 📄 Tabelle -->
+        <table id="userTable" class="display cell-border stripe" style="width:100%">
+            <thead>
             <tr>
-                <td style="display:none;"><%= user.id %></td>
-                <td><%= user.email %></td>
-                <td><%= user.salutation %> <%= user.first_name %> <%= user.last_name %></td>
-                <td><%= user.role %></td>
-                <td><%= user.active ? '✅ Aktiv' : '❌ Inaktiv' %></td>
+                <th style="display:none;">ID</th> <!-- versteckt -->
+                <th>Email</th>
+                <th>Name</th>
+                <th>Rolle</th>
+                <th>Status</th>
             </tr>
-        <% }) %>
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            <% users.forEach(user => { %>
+                <tr>
+                    <td style="display:none;"><%= user.id %></td>
+                    <td><%= user.email %></td>
+                    <td><%= user.salutation %> <%= user.first_name %> <%= user.last_name %></td>
+                    <td><%= user.role %></td>
+                    <td><%= user.active ? '✅ Aktiv' : '❌ Inaktiv' %></td>
+                </tr>
+            <% }) %>
+            </tbody>
+        </table>
+    </div>
 
     <!-- 📦 DataTables + Select + Buttons -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -130,7 +102,6 @@
             });
         });
     </script>
-
 
 <!-- Dark Mode Footer (ohne Bootstrap's bg-light) -->
 <%- include(partials + '/footer') %>

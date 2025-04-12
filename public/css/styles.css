@@ -1,0 +1,177 @@
+/* ============================================
+   CSS-Variablen definieren (können später anpassbar sein)
+   Diese Variablen ermöglichen es, zentrale Werte wie Farben, Abstände und Rundungen an einer Stelle zu ändern.
+   ============================================ */
+:root {
+    /* Farben */
+    --color-bg-dark: #1e1e1e;                /* Hintergrundfarbe der Seite im Dark Mode */
+    --color-text-dark: #fff;                 /* Textfarbe im Dark Mode */
+    --color-table-bg: #2e2e2e;                /* Hintergrundfarbe der Tabellen */
+    --color-thead-bg: #003f75;               /* Hintergrundfarbe des Tabellenkopfes */
+    --color-row-hover: #3e3e3e;              /* Hintergrundfarbe einer Tabellenzeile im Hover-Zustand */
+    --color-toolbar-btn-bg: #333;            /* Hintergrundfarbe der Toolbar-Buttons */
+    --color-toolbar-btn-border: #555;        /* Farbe für den Rahmen von Toolbar-Buttons */
+    --color-toolbar-btn-hover: #555;         /* Hintergrundfarbe der Toolbar-Buttons im Hover-Zustand */
+    --color-form-bg: #2a2a2a;                /* Hintergrundfarbe von Formularen */
+    --color-input-bg: #333;                  /* Hintergrundfarbe von Eingabefeldern */
+
+    /* Abstände & Ränder */
+    --padding-form: 20px;                    /* Innenabstand/Padding für Formulare */
+    --border-radius-form: 6px;               /* Rundungsgrad (Ecken) für Formulare */
+    --margin-bottom-toolbar: 0.5rem;         /* Außenabstand (unterhalb) für die Toolbar */
+
+    /* Button Farben (falls Varianten benötigt werden) */
+    --btn-success-bg: #28a745;              /* Hintergrundfarbe für Success-Buttons (grün) */
+    --btn-primary-bg: #007bff;              /* Hintergrundfarbe für Primary-Buttons (blau) */
+    --btn-danger-bg: #dc3545;               /* Hintergrundfarbe für Danger-Buttons (rot) */
+}
+
+/* ============================================
+   Gemeinsame Dark Mode Einstellungen
+   Diese Einstellungen sorgen dafür, dass im Dark Mode die definierten Farben genutzt werden.
+   ============================================ */
+body.dark-mode {
+    background-color: var(--color-bg-dark) !important;  /* Setzt den Dark Mode Hintergrund */
+    color: var(--color-text-dark) !important;            /* Setzt die Textfarbe im Dark Mode */
+}
+body.dark-mode a {
+    color: var(--color-text-dark) !important;            /* Überschreibt die Standard-Linkfarbe im Dark Mode */
+}
+
+/* ============================================
+   Gemeinsame DataTable Basis-Styling für alle Tabellen
+   Hier werden grundlegende Eigenschaften wie Hintergrund, Textfarbe und Rundung der Tabellen definiert.
+   ============================================ */
+table.dataTable {
+    background-color: var(--color-table-bg);             /* Hintergrundfarbe der Tabelle */
+    color: var(--color-text-dark);                        /* Textfarbe in der Tabelle */
+    border-collapse: separate;                           /* Erlaubt separate Zellen für border-radius */
+    border-spacing: 0;                                   /* Entfernt Abstand zwischen Tabellenzellen */
+    border-radius: 6px;                                  /* Rundet die Ecken der Tabelle ab */
+    overflow: hidden;                                   /* Sorgt dafür, dass Inhalte bei abgerundeten Ecken nicht herausragen */
+}
+table.dataTable thead {
+    background-color: var(--color-thead-bg);             /* Hintergrundfarbe des Tabellenkopfes */
+    color: var(--color-text-dark);                        /* Textfarbe im Tabellenkopf */
+}
+table.dataTable tbody tr {
+    background-color: var(--color-table-bg);             /* Hintergrundfarbe der Tabellenzeilen */
+    color: var(--color-text-dark);                        /* Textfarbe in den Tabellenzeilen */
+}
+table.dataTable tbody tr:hover {
+    background-color: var(--color-row-hover);            /* Hintergrundfarbe der Tabellenzeile im Hover-Zustand */
+}
+
+/* ============================================
+   Gemeinsame Toolbar & Buttons
+   Diese Einstellungen gelten für die Toolbar und Buttons, die in ihr verwendet werden.
+   ============================================ */
+.dt-toolbar {
+    margin-bottom: var(--margin-bottom-toolbar);         /* Setzt den Abstand unterhalb der Toolbar */
+}
+.dt-btn {
+    background-color: var(--color-toolbar-btn-bg);         /* Hintergrundfarbe der Buttons */
+    color: var(--color-text-dark);                        /* Textfarbe der Buttons */
+    border: none;                                        /* Kein Rahmen (stattdessen wird z.B. bei hover der Hintergrund geändert) */
+    padding: 6px 12px;                                   /* Innenabstand des Buttons (oben/unten 6px, links/rechts 12px) */
+    margin-right: 5px;                                   /* Abstand rechts vom Button */
+    cursor: pointer;                                     /* Zeigt beim Überfahren den Pointer (Handcursor) */
+    border-radius: 6px;                                  /* Rundet die Ecken des Buttons ab */
+    text-decoration: none;                               /* Entfernt Standard-Unterstreichung bei Links */
+}
+.dt-btn:hover {
+    background-color: var(--color-toolbar-btn-hover);   /* Ändert die Hintergrundfarbe beim Hover über den Button */
+}
+
+/* DataTables Filter, Pagination und Info */
+/* Diese Einstellungen betreffen die Filter- und Paginierungselemente der DataTables */
+.dataTables_wrapper input,
+.dataTables_wrapper select {
+    background: var(--color-toolbar-btn-bg);             /* Hintergrundfarbe für das Filter-Input und die Längen-Auswahl */
+    color: var(--color-text-dark);                        /* Textfarbe der Filter-/Select-Felder */
+    border: none;                                          /* Rahmenfarbe um die Felder */
+    border-radius: 4px;                                  /* Rundet die Ecken der Felder ab */
+    padding: 5px;                                        /* Innenabstand für eine bessere Lesbarkeit */
+    margin-bottom: 20px;                                 /* Abstand zum nächsten Element */
+}
+
+/* ============================================
+   Gemeinsame Edit-Form Styles für Controller und Benutzer
+   Diese Regeln gestalten Überschriften und Formularelemente auf den Edit-Seiten.
+   ============================================ */
+h2 {
+    color: var(--color-text-dark);                      /* Setzt die Farbe der Überschrift */
+    margin-top: 1rem;                                   /* Abstand oberhalb der Überschrift */
+}
+
+.edit-form {
+    max-width: 500px;                                   /* Maximale Breite des Formulars */
+    padding: var(--padding-form);                       /* Innenabstand des Formulars */
+    background: var(--color-form-bg);                   /* Hintergrundfarbe des Formulars */
+    border-radius: var(--border-radius-form);           /* Rundung der Ecken des Formulars */
+    margin: 1rem auto;                                  /* Zentriert das Formular und setzt oben/unten einen Abstand */
+}
+
+.edit-form label {
+    display: block;                                    /* Setzt das Label als Blockelement, sodass es eine eigene Zeile einnimmt */
+    margin-top: 10px;                                   /* Abstand oberhalb des Labels */
+    font-weight: bold;                                 /* Fettgedruckte Schrift für Labels */
+}
+
+/* Gruppierung: Inputs und Selects bekommen gleiche Stile */
+.edit-form input,
+.edit-form select {
+    width: 100%;                                       /* Element nimmt die volle Breite des Containers ein */
+    padding: 8px;                                      /* Innenabstand für bessere Lesbarkeit */
+    margin-top: 4px;                                   /* Abstand oberhalb des Elements */
+    border: 1px solid var(--color-toolbar-btn-border);   /* Rahmen um das Element */
+    background-color: var(--color-input-bg);           /* Hintergrundfarbe der Eingabefelder */
+    color: var(--color-text-dark);                     /* Textfarbe der Eingabefelder */
+    border-radius: 4px;                                /* Rundet die Ecken der Eingabefelder ab */
+}
+
+.form-actions {
+    margin-top: 20px;                                  /* Abstand oberhalb des Aktionsbereichs (Buttons) */
+    display: flex;                                     /* Setzt ein Flexbox-Layout, um Elemente nebeneinander anzuordnen */
+    gap: 10px;                                        /* Abstand zwischen den Flex-Elementen */
+}
+
+/* Wenn Du die .dt-btn-Klasse für Navigation oder Tabellen wiederverwenden möchtest,
+   kannst Du sie auch bei Formular-Buttons nutzen. Alternativ einzelne Varianten: */
+.btn-success,
+.btn-primary,
+.btn-danger {
+    border: none;                                    /* Entfernt den Rahmen der Buttons */
+    color: var(--color-text-dark);                   /* Setzt die Textfarbe */
+    padding: 8px 16px;                               /* Innenabstand für die Buttons (größer als dt-btn) */
+    cursor: pointer;                                 /* Hand-Cursor beim Überfahren */
+    border-radius: 4px;                              /* Rundet die Ecken der Buttons ab */
+}
+
+.btn-success {
+    background-color: var(--btn-success-bg);         /* Hintergrundfarbe für Success-Buttons */
+}
+.btn-primary {
+    background-color: var(--btn-primary-bg);         /* Hintergrundfarbe für Primary-Buttons */
+}
+.btn-danger {
+    background-color: var(--btn-danger-bg);          /* Hintergrundfarbe für Danger-Buttons */
+}
+
+.btn-success:hover,
+.btn-primary:hover,
+.btn-danger:hover {
+    opacity: 0.9;                                    /* Verringert die Opazität beim Hover (leicht transparent) */
+}
+
+/* Damit auch Buttons in <a>-Elementen korrekt dargestellt werden
+   Dieser Selektor setzt alle Stile für ein <button> innerhalb eines <a> zurück
+   und wendet dann die gewünschte Darstellung an. */
+a button {
+    all: unset;                                      /* Entfernt alle Standardstile */
+    cursor: pointer;                                 /* Setzt den Cursor auf Pointer */
+    display: inline-block;                           /* Zeigt den Button als Inline-Blockelement an */
+    text-align: center;                              /* Zentriert den Text im Button */
+    padding: 8px 16px;                               /* Innenabstand des Buttons */
+    border-radius: 4px;                              /* Rundet die Ecken ab */
+}

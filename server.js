@@ -19,6 +19,9 @@ app.set('etag', false);
 app.set('trust proxy', true);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true })); //axios
+app.use(express.static('public'));
+
 
 // Views-Pfad setzen
 app.set("view engine", "ejs");
