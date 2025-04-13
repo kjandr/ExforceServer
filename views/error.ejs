@@ -1,5 +1,8 @@
 <%- include(partials + '/head', { title: "Fehler" }) %>
+<!-- 🎨 Dark Style -->
+<link rel="stylesheet" href="/css/styles.css">
 
+<body class="dark-mode">
 <div style="text-align: center; margin-top: 3rem;">
     <h2 style="color: #d9534f;">🚫 Fehler</h2>
     <p><strong><%= message || "Ein unbekannter Fehler ist aufgetreten." %></strong></p>
@@ -8,3 +11,4 @@
         <button class="btn-info">⬅️ Zurück zum Dashboard</button>
     </a>
 </div>
+</body>
