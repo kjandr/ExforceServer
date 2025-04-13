@@ -28,6 +28,7 @@
     "@databases": "./databases",
     "@log": "./log",
     "@middleware": "./middleware",
-    "@controllers": "./controllers"
+    "@controllers": "./controllers",
+    "@utils": "utils"
   }
 }

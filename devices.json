@@ -1,7 +1,7 @@
 {
-  "clients": [
+  "controller": [
     {
-      "device": "EX8-560",
+      "type": "EX8-560",
       "preset": {
         "serial_no": "A18",
         "uuid": "uuid560",
@@ -11,11 +11,11 @@
         "battery_ah": 14,
         "battery_current_max": 5,
         "battery_current_min": -5,
-        "operating_time_min": 0
+        "operating_time": 0
       }
     },
     {
-      "device": "EX8-620",
+      "type": "EX8-620",
       "preset": {
         "serial_no": "A13",
         "uuid": "uuid620",
@@ -25,15 +25,63 @@
         "battery_ah": 14,
         "battery_current_max": 5,
         "battery_current_min": -5,
-        "operating_time_min": 0
+        "operating_time": 0
       }
     }
   ],
-  "cells": {
-    "10": { "battery_cutoff_start": 34.0, "battery_cutoff_end": 31.0 },
-    "11": { "battery_cutoff_start": 37.4, "battery_cutoff_end": 34.1 },
-    "12": { "battery_cutoff_start": 40.8, "battery_cutoff_end": 37.2 },
-    "13": { "battery_cutoff_start": 41.5, "battery_cutoff_end": 39.0 },
-    "14": { "battery_cutoff_start": 44.5, "battery_cutoff_end": 42.0 }
-  }
+  "battery": {
+    "cells": {
+      "10": { "battery_cutoff_start": 34.0, "battery_cutoff_end": 31.0 },
+      "11": { "battery_cutoff_start": 37.4, "battery_cutoff_end": 34.1 },
+      "12": { "battery_cutoff_start": 40.8, "battery_cutoff_end": 37.2 },
+      "13": { "battery_cutoff_start": 41.5, "battery_cutoff_end": 39.0 },
+      "14": { "battery_cutoff_start": 44.5, "battery_cutoff_end": 42.0 }
+    }
+  },
+  "engine": [
+    {
+      "type": "G510.1000",
+      "preset": {
+        "serial_no": "027",
+        "controller_id": -1,
+        "current_ki": 35.0,
+        "current_kp": 0.3,
+        "freq_foc_khz": 30.0,
+        "flux_linkage_mwb": 23.5,
+        "inductance_uh": 400.0,
+        "resistance_mr": 54.0,
+        "observer_gain": 3.0,
+        "current_max": 80.0,
+        "erpm_max": 30000,
+        "wattage_max": 2500,
+        "temp_type": "PTC 1K at 100C",
+        "temp_cutoff_end": 140.0,
+        "temp_cutoff_start": 120.0,
+        "mileage_km": 0,
+        "operating_time": 0
+      }
+    },
+    {
+      "type": "G5300.750",
+      "preset": {
+        "serial_no": "001",
+        "controller_id": -1,
+        "current_ki": 24.0,
+        "current_kp": 0.1,
+        "freq_foc_khz": 30.0,
+        "flux_linkage_mwb": 7.6,
+        "inductance_uh": 70.0,
+        "resistance_mr": 22.0,
+        "observer_gain": 15.9,
+        "current_max": 80.0,
+        "erpm_max": 80000,
+        "wattage_max": 2000,
+        "temp_type": "NTC 10K at 25C",
+        "temp_cutoff_end": 140.0,
+        "temp_cutoff_start": 120.0,
+        "mileage_km": 0,
+        "operating_time": 0
+      }
+    }
+  ]
 }

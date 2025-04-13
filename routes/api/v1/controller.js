@@ -18,7 +18,7 @@ module.exports = () => {
             battery_ah,
             battery_current_max,
             battery_current_min,
-            operating_time_min
+            operating_time
         } = req.body;
 
         // 🧪 Validierung
@@ -53,7 +53,7 @@ module.exports = () => {
             INSERT INTO controller (
                 serial_no, remark, user_id, type, uuid,
                 battery_cutoff_end, battery_cutoff_start, battery_cells, battery_ah,
-                battery_current_max, battery_current_min, operating_time_min
+                battery_current_max, battery_current_min, operating_time
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
@@ -69,7 +69,7 @@ module.exports = () => {
                 battery_ah ?? null,
                 battery_current_max ?? null,
                 battery_current_min ?? null,
-                operating_time_min ?? null
+                operating_time ?? null
             ];
 
             controllerDb.run(insertQuery, values, function (err) {

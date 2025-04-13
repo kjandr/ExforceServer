@@ -15,7 +15,7 @@
         <select id="type" name="type"  onchange="applyMotorType()">
             <option value="none" <%= controller.type === "none" ? "selected" : "" %>>Kein Motor Type</option>
             <% devices.forEach(d => { %>
-                <option value="<%= d.device %>" <%= controller.type === d.device ? "selected" : "" %>><%= d.device %></option>
+                <option value="<%= d.type %>" <%= controller.type === d.tyoe ? "selected" : "" %>><%= d.type %></option>
             <% }) %>
         </select>
 
@@ -40,7 +40,7 @@
         <label for="battery_cells">Battery Cells:</label>
         <select id="cell" name="battery_cells" onchange="applyCell()">
             <%
-            const cellData = cells;
+            const cellData = battery.cells;
             Object.keys(cellData).forEach(function(cellKey) {
             %>
                 <option value="<%= cellKey %>" <%= controller.battery_cells == cellKey ? "selected" : "" %>><%= cellKey %></option>
@@ -56,8 +56,8 @@
         <label for="battery_current_min">Battery Current Min:</label>
         <input type="number" id="battery_current_min" name="battery_current_min" value="<%= controller.battery_current_min %>" required>
 
-        <label for="operating_time_min">Operating Time Min:</label>
-        <input type="number" id="operating_time_min" name="operating_time_min" value="<%= controller.operating_time_min %>" required>
+        <label for="operating_time">Operating Time Min:</label>
+        <input type="number" id="operating_time" name="operating_time" value="<%= controller.operating_time_min %>" required>
 
         <div class="form-actions">
             <button type="submit" class="btn-success">💾 Speichern</button>
@@ -72,7 +72,6 @@
 </body>
 
 <script>
-    // Motor Type
     const motor_typs = {
         "none": {
             serial_no: "",
@@ -86,15 +85,15 @@
             battery_ah: 0,
             battery_current_max: 0,
             battery_current_min: 0,
-            operating_time_min: 0
+            operating_time: 0
         },
         <% devices.forEach(d => {
             const p = d.preset || {}; %>
-        "<%= d.device %>": {
+        "<%= d.type %>": {
             serial_no: "<%= p.serial_no || '' %>",
             remark: "",
             user_id: -1,
-            type: "<%= d.device %>",
+            type: "<%= d.type %>",
             uuid: "<%= p.uuid || '' %>",
             battery_cutoff_end: <%= p.battery_cutoff_end ?? 0 %>,
             battery_cutoff_start: <%= p.battery_cutoff_start ?? 0 %>,
@@ -102,12 +101,12 @@
             battery_ah: <%= p.battery_ah ?? 0 %>,
             battery_current_max: <%= p.battery_current_max ?? 0 %>,
             battery_current_min: <%= p.battery_current_min ?? 0 %>,
-            operating_time_min: <%= p.operating_time_min ?? 0 %>
+            operating_time: <%= p.operating_time ?? 0 %>
         },
         <% }) %>
     };
 
-    const cells = <%- JSON.stringify(cells) %>;
+    const battery  = <%- JSON.stringify(battery) %>;
 
     function applyMotorType() {
         const selected = document.getElementById("type").value;
@@ -130,7 +129,7 @@
 
     function applyCell() {
         const selected = document.getElementById("cell").value;
-        const values = cells[selected];
+        const values = battery.cells[selected];
         if (!values) return;
 
         Object.entries(values).forEach(([key, val]) => {

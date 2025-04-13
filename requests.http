@@ -37,14 +37,14 @@ Content-Type: application/json
 
 
 ### Controller in die Datenbank einfügen
-# curl -X POST "http://localhost:8000/admin/controller/add" -H "Content-Type: application/json" -H "Accept: application/json" -d '{"serial_no": "SN1234567890","remark": "Test_Eintrag","user_id": 1,"type": "Controller_Type_A","uuid": "12345A","battery_cutoff_end": 3.7,"battery_cutoff_start": 4.2,"battery_cells": 6,"battery_ah": 2.4,"battery_current_max": 20,"battery_current_min": 2,"operating_time_min": 120}
+# curl -X POST "http://localhost:8000/admin/controller/add" -H "Content-Type: application/json" -H "Accept: application/json" -d '{"serial_no": "SN1234567890","remark": "Test_Eintrag","user_id": 1,"type": "Controller_Type_A","uuid": "12345A","battery_cutoff_end": 3.7,"battery_cutoff_start": 4.2,"battery_cells": 6,"battery_ah": 2.4,"battery_current_max": 20,"battery_current_min": 2,"operating_time": 120}
 POST http://localhost:8000/api/v1/controller/add
 Authorization: Bearer {{access_token}}
 Content-Type: application/json
 
 {"serial_no": "SN1234567890", "remark": "Test_Eintrag", "user_id": -1, "type": "EX8-560", "uuid": "12345A",
   "battery_cutoff_end": 3.7, "battery_cutoff_start": 4.2, "battery_cells": 6, "battery_ah": 2.4, "battery_current_max": 20,
-  "battery_current_min": 2, "operating_time_min": 0}
+  "battery_current_min": 2, "operating_time": 0}
 
 
 
@@ -56,23 +56,23 @@ Authorization: Bearer {{access_token}}
 
 
 ### Firmware Check EX8-620
-# curl -X GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&device=EX8-620 -H "Authorization: Bearer <DEIN-TOKEN>"
-GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&device=EX8-620
+# curl -X GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&type=EX8-620 -H "Authorization: Bearer <DEIN-TOKEN>"
+GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&type=EX8-620
 Authorization: Bearer {{access_token}}
 
 ### Firmware Check EX8-560
-# curl -X GET http://localhost:8000/api/v1/firmware/check?version=1.2.0&12345A&device=EX8-560 -H "Authorization: Bearer <DEIN-TOKEN>"
-GET http://localhost:8000/api/v1/firmware/check?version=1.2.0&12345A&device=EX8-560
+# curl -X GET http://localhost:8000/api/v1/firmware/check?version=1.2.0&12345A&type=EX8-560 -H "Authorization: Bearer <DEIN-TOKEN>"
+GET http://localhost:8000/api/v1/firmware/check?version=1.2.0&12345A&type=EX8-560
 Authorization: Bearer {{access_token}}
 
 ### Firmware Check EX8-560 kein UPDATE
-# curl -X GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&device=EX8-560 -H "Authorization: Bearer <DEIN-TOKEN>"
-GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&device=EX8-560
+# curl -X GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&type=EX8-560 -H "Authorization: Bearer <DEIN-TOKEN>"
+GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&type=EX8-560
 Authorization: Bearer {{access_token}}
 
 ### Firmware Check EX8-560 kein DEVICE
-# curl -X GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&device=EX8-111 -H "Authorization: Bearer <DEIN-TOKEN>"
-GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&device=EX8-111
+# curl -X GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&type=EX8-111 -H "Authorization: Bearer <DEIN-TOKEN>"
+GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&type=EX8-111
 Authorization: Bearer {{access_token}}
 
 

@@ -88,7 +88,7 @@ const controllerSchema = `CREATE TABLE IF NOT EXISTS controller (
     battery_ah INTEGER NOT NULL,
     battery_current_max FLOAT NOT NULL,
     battery_current_min FLOAT NOT NULL,
-    operating_time_min INTEGER NOT NULL DEFAULT 0
+    operating_time INTEGER NOT NULL DEFAULT 0
                           )`;
 
 const engineSchema = `CREATE TABLE IF NOT EXISTS engine (
@@ -113,7 +113,7 @@ const engineSchema = `CREATE TABLE IF NOT EXISTS engine (
     temp_cutoff_end FLOAT NOT NULL,
     temp_cutoff_start FLOAT NOT NULL,
     mileage_km INTEGER NOT NULL DEFAULT 0,
-    operating_time_min INTEGER NOT NULL DEFAULT 0
+    operating_time INTEGER NOT NULL DEFAULT 0
                       )`;
 
 // Funktion zum Initialisieren aller Tabellen

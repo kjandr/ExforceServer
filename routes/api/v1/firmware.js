@@ -24,7 +24,7 @@ module.exports = () => {
 
     // Lade Geräteinfos aus Datei
     function loadDevices() {
-        return JSON.parse(fs.readFileSync("devices.json", "utf-8")).clients;
+        return JSON.parse(fs.readFileSync("devices.json", "utf-8")).controller;
     }
 
     // Auth-Middleware
@@ -68,28 +68,23 @@ module.exports = () => {
     // 🧪 Check-Firmware-Update (geschützt)
     router.get("/check", authenticateJWT, (req, res) => {
         const currentVersion = req.query.version;
-        const deviceType = req.query.device;
-
-        // Ausgabe auf die Konsole
-        console.log("Current Version:", currentVersion);
-        console.log("Device Type:", deviceType);
-
+        const controllerType = req.query.type;
 
         if (!currentVersion) {
             return res.status(400).json({ error: "Parameter 'version' fehlt." });
         }
 
         const firmwareList = loadFirmwareInfo();
-        const fw = firmwareList[deviceType];
+        const fw = firmwareList[controllerType];
 
         if (!fw) {
-            return res.status(404).json({ error: `Keine Firmware für Gerät "${deviceType}" gefunden.` });
+            return res.status(404).json({ error: `Keine Firmware für Gerät "${controllerType}" gefunden.` });
         }
 
         const updateAvailable = isNewerVersion(currentVersion, fw.version);
 
         res.json({
-            device: deviceType,
+            device: controllerType,
             updateAvailable,
             latestVersion: fw.version,
             url: updateAvailable ? fw.url : null,
@@ -99,12 +94,12 @@ module.exports = () => {
 
     // 🧪 Firmware-Info direkt abfragen (auch geschützt)
     router.get("/latest", authMiddleware, (req, res) => {
-        const deviceType = req.client.device;
+        const controllerType = req.client.type;
         const firmwareList = loadFirmwareInfo();
-        const fw = firmwareList[deviceType];
+        const fw = firmwareList[controllerType];
 
         if (!fw) {
-            return res.status(404).json({ error: `Keine Firmware für Gerät "${deviceType}" gefunden.` });
+            return res.status(404).json({ error: `Keine Firmware für Gerät "${controllerType}" gefunden.` });
         }
 
         res.json(fw);

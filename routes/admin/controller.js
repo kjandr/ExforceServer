@@ -1,18 +1,6 @@
 const express = require("express");
 const { controllerDb } = require("@databases");
-const fs = require("fs");
-const path = require("path");
-
-function loadDevices() {
-    const filePath = path.join("devices.json");
-    try {
-        const raw = fs.readFileSync(filePath, "utf8");
-        return JSON.parse(raw); // gibt ganzes Objekt zurück, nicht nur .clients
-    } catch (err) {
-        console.error("❌ Fehler beim Lesen von devices.json:", err.message);
-        return { clients: [], cells: {} };
-    }
-}
+const loadDevices = require("@utils/loadDevices");
 
 module.exports = () => {
     const router = express.Router();
@@ -50,8 +38,8 @@ module.exports = () => {
             res.render("admin/controller/edit", {
                 title: "Controller bearbeiten",
                 controller,
-                devices: devices.clients,
-                cells: devices.cells
+                devices: devices.controller,
+                battery: devices.battery
             });
         });
     });
@@ -71,7 +59,7 @@ module.exports = () => {
             battery_ah,
             battery_current_max,
             battery_current_min,
-            operating_time_min
+            operating_time
         } = req.body;
 
         // Aktualisieren der Controller-Daten in der Datenbank
@@ -88,7 +76,7 @@ module.exports = () => {
      battery_ah = ?, 
      battery_current_max = ?,
      battery_current_min = ?,
-     operating_time_min = ?,
+     operating_time = ?,
      updated_at = CURRENT_TIMESTAMP
      WHERE id = ?`,
             [
@@ -103,7 +91,7 @@ module.exports = () => {
                 battery_ah,
                 battery_current_max,
                 battery_current_min,
-                operating_time_min,
+                operating_time,
                 controllerId
             ],
             function(err) {
@@ -149,8 +137,8 @@ module.exports = () => {
 
         res.render("admin/controller/add", {
             title: "Neuen Controller hinzufügen",
-            devices: devices.clients,
-            cells: devices.cells
+            devices: devices.controller,
+            battery: devices.battery
         });
     });
 
@@ -168,7 +156,7 @@ module.exports = () => {
             battery_ah,
             battery_current_max,
             battery_current_min,
-            operating_time_min
+            operating_time
         } = req.body;
 
         // Beispiel-Query zum Einfügen der Werte in die Datenbank
@@ -176,7 +164,7 @@ module.exports = () => {
             INSERT INTO controller (
                 serial_no, remark, user_id, type, uuid,
                 battery_cutoff_end, battery_cutoff_start, battery_cells, battery_ah,
-                battery_current_max, battery_current_min, operating_time_min
+                battery_current_max, battery_current_min, operating_time
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
@@ -197,7 +185,7 @@ module.exports = () => {
                 battery_ah,
                 battery_current_max,
                 battery_current_min,
-                operating_time_min
+                operating_time
             ],
             function (err) {
                 if (err) {

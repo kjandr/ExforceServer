@@ -4,6 +4,7 @@ const authController = require('@controllers/authController');
 
 const userRoutes = require("./user");
 const controllerRoutes = require("./controller");
+const engineRoutes = require("./engine");
 const logsRoutes = require("./logs");
 
 module.exports = () => {
@@ -29,6 +30,7 @@ module.exports = () => {
     // Admin-Subrouten definieren
     router.use("/user", userRoutes()); // /admin/user
     router.use("/controller", controllerRoutes()); // /admin/controller
+    router.use("/engine", engineRoutes()); // /admin/controller
     router.use("/logs", logsRoutes()); // /admin/logs
 
     // Weitere Routen für /admin hinzufügen

@@ -6,6 +6,8 @@ const { authenticateJWT, authorizeRole, validateUUID } = require("@middleware/au
 const { url, viewsPath, partialsPath } = require("@config");
 const cookieParser = require('cookie-parser');
 const { initializeTables } = require("@databases");
+const ensureEngineTableHasOperatingTime = require("@utils/migrateEngineTable");
+
 
 // Express-App erstellen
 const app = express();
@@ -54,6 +56,8 @@ app.get("/test",
 // Server starten
 async function startServer() {
     try {
+        await ensureEngineTableHasOperatingTime();
+
         // Datenbanktabellen initialisieren
         await initializeTables();
 
