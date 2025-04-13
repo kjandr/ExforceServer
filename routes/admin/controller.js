@@ -1,5 +1,18 @@
 const express = require("express");
 const { controllerDb } = require("@databases");
+const fs = require("fs");
+const path = require("path");
+
+function loadDevices() {
+    const filePath = path.join("devices.json");
+    try {
+        const raw = fs.readFileSync(filePath, "utf8");
+        return JSON.parse(raw); // gibt ganzes Objekt zurück, nicht nur .clients
+    } catch (err) {
+        console.error("❌ Fehler beim Lesen von devices.json:", err.message);
+        return { clients: [], cells: {} };
+    }
+}
 
 module.exports = () => {
     const router = express.Router();
@@ -22,23 +35,28 @@ module.exports = () => {
     router.get('/edit/:id', (req, res) => {
         const controllerId = req.params.id;
 
-        // Holen der Controller-Daten aus der Datenbank
         controllerDb.get("SELECT * FROM controller WHERE id = ?", [controllerId], (err, controller) => {
             if (err) {
-                console.error("Datenbankfehler:", err);
-                return res.status(500).send("Datenbankfehler beim Abrufen des Controllers");
+                console.error("Fehler beim Laden des Controllers:", err.message);
+                return res.status(500).render("error", { message: "Controller konnte nicht geladen werden." });
             }
 
             if (!controller) {
-                return res.status(404).send("Controller nicht gefunden");
+                return res.status(404).render("error", { message: "Controller nicht gefunden." });
             }
 
-            // Rendern des Bearbeitungsformulars mit den vorhandenen Daten
-            res.render('admin/controller/edit', { title: "Controller bearbeiten", controller });
+            const devices = loadDevices();
+
+            res.render("admin/controller/edit", {
+                title: "Controller bearbeiten",
+                controller,
+                devices: devices.clients,
+                cells: devices.cells
+            });
         });
     });
 
-// Route zum Verarbeiten der Bearbeitungsdaten (POST)
+    // Route zum Verarbeiten der Bearbeitungsdaten (POST)
     router.post('/edit/:id', (req, res) => {
         const controllerId = req.params.id;
         const {
@@ -127,7 +145,13 @@ module.exports = () => {
 
     // Route für die HTML-Seite
     router.get('/add', (req, res) => {
-        res.render('admin/controller/add'); // Rendert die Datei views/admin/controller/add.ejs
+        const devices = loadDevices();
+
+        res.render("admin/controller/add", {
+            title: "Neuen Controller hinzufügen",
+            devices: devices.clients,
+            cells: devices.cells
+        });
     });
 
     // Route für den POST-Aufruf (Daten in Datenbank speichern)

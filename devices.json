@@ -1,10 +1,39 @@
 {
   "clients": [
     {
-      "device": "EX8-560"
+      "device": "EX8-560",
+      "preset": {
+        "serial_no": "A18",
+        "uuid": "uuid560",
+        "battery_cutoff_start": 41.5,
+        "battery_cutoff_end": 39.0,
+        "battery_cells": 13,
+        "battery_ah": 14,
+        "battery_current_max": 5,
+        "battery_current_min": -5,
+        "operating_time_min": 0
+      }
     },
     {
-      "device": "EX8-620"
+      "device": "EX8-620",
+      "preset": {
+        "serial_no": "A13",
+        "uuid": "uuid620",
+        "battery_cutoff_start": 44.5,
+        "battery_cutoff_end": 42.0,
+        "battery_cells": 14,
+        "battery_ah": 14,
+        "battery_current_max": 5,
+        "battery_current_min": -5,
+        "operating_time_min": 0
+      }
     }
-  ]
+  ],
+  "cells": {
+    "10": { "battery_cutoff_start": 34.0, "battery_cutoff_end": 31.0 },
+    "11": { "battery_cutoff_start": 37.4, "battery_cutoff_end": 34.1 },
+    "12": { "battery_cutoff_start": 40.8, "battery_cutoff_end": 37.2 },
+    "13": { "battery_cutoff_start": 41.5, "battery_cutoff_end": 39.0 },
+    "14": { "battery_cutoff_start": 44.5, "battery_cutoff_end": 42.0 }
+  }
 }
