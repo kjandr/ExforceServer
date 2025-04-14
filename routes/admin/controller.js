@@ -3,6 +3,7 @@ const { controllerDb } = require("@databases");
 const loadDevices = require("@utils/loadDevices");
 const controllerFields = require("@databases/controllerFields");
 const { buildInsertQuery, buildUpdateQuery } = require("@databases/sqlBuilder");
+const isApiCall = require("@utils/isApiCall");
 
 module.exports = () => {
     const router = express.Router();
@@ -31,12 +32,42 @@ module.exports = () => {
         const values = controllerFields.map(field => req.body[field]);
         const { sql } = buildInsertQuery("controller", controllerFields);
 
+        console.log('📦 Request Body:', JSON.stringify(req.body, null, 2));
+
         controllerDb.run(sql, values, function (err) {
             if (err) {
                 console.error("❌ Fehler beim Einfügen:", err.message);
-                return res.status(500).send("Fehler beim Speichern.");
+
+                // Prüfen, ob es sich um einen API-Aufruf handelt
+                const isApiRequest = isApiCall(req);
+
+                if (isApiRequest) {
+                    return res.status(500).json({
+                        success: false,
+                        error: "Fehler beim Speichern des Controllers",
+                        message: err.message
+                    });
+                } else {
+                    return res.status(500).send("Fehler beim Speichern.");
+                }
             }
-            res.redirect('/admin/controller/list?created=true');
+
+            // Prüfen, ob es sich um einen API-Aufruf handelt
+            const isApiRequest = isApiCall(req);
+
+            if (isApiRequest) {
+                return res.status(201).json({
+                    success: true,
+                    message: "Controller erfolgreich erstellt",
+                    id: this.lastID,
+                    data: values.reduce((obj, val, idx) => {
+                        obj[controllerFields[idx]] = val;
+                        return obj;
+                    }, {})
+                });
+            } else {
+                res.redirect('/admin/controller/list?created=true');
+            }
         });
     });
 

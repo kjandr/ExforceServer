@@ -38,7 +38,7 @@ Content-Type: application/json
 
 ### Controller in die Datenbank einfügen
 # curl -X POST "http://localhost:8000/admin/controller/add" -H "Content-Type: application/json" -H "Accept: application/json" -d '{"serial_no": "SN1234567890","remark": "Test_Eintrag","user_id": 1,"type": "Controller_Type_A","uuid": "12345A","battery_cutoff_end": 3.7,"battery_cutoff_start": 4.2,"battery_cells": 6,"battery_ah": 2.4,"battery_current_max": 20,"battery_current_min": 2,"operating_time": 120}
-POST http://localhost:8000/api/v1/controller/add
+POST http://localhost:8000/admin/controller/add
 Authorization: Bearer {{access_token}}
 Content-Type: application/json
 

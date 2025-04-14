@@ -4,32 +4,61 @@ const { controllerDb } = require("@databases");
 
 // Middleware zum Überprüfen von JWT-Tokens in Cookies
 const authMiddleware = (req, res, next) => {
-    //console.log("authMiddleware aufgerufen");
-    //console.log("Cookies:", req.cookies);
+    let token;
 
-    // JWT-Token aus dem Cookie holen
-    const token = req.cookies.jwt;
+    // 1. Prüfen, ob ein Bearer-Token im Authorization-Header vorhanden ist
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+        console.log("Bearer-Token gefunden");
+    }
+    // 2. Wenn kein Bearer-Token vorhanden ist, prüfen, ob ein JWT-Cookie existiert
+    else {
+        token = req.cookies.jwt;
+        console.log("JWT-Cookie gefunden:", !!token);
+    }
 
+    // Wenn weder Bearer-Token noch JWT-Cookie vorhanden ist
     if (!token) {
-        //console.log("Kein JWT-Cookie gefunden");
-        return res.redirect('/admin/login');
+        console.log("Keine Authentifizierung gefunden");
+
+        // Unterscheiden zwischen API-Anfragen und Browser-Anfragen
+        const isApiRequest = req.headers['accept'] && !req.headers['accept'].includes('text/html');
+
+        if (isApiRequest) {
+            return res.status(401).json({
+                success: false,
+                message: "Nicht authentifiziert"
+            });
+        } else {
+            return res.redirect('/admin/login');
+        }
     }
 
     try {
         // Token verifizieren
-        //console.log("Versuche Token zu verifizieren");
         const decoded = jwt.verify(token, secret_key);
 
-        //console.log("Token erfolgreich verifiziert:", decoded);
         // Benutzer zur Request hinzufügen
         req.user = decoded;
+        console.log("Authentifizierter Benutzer:", req.user.username || req.user.email);
 
         next();
     } catch (error) {
-        // Bei ungültigem Token zum Login zurückleiten
-        //console.error("Token-Verifizierung fehlgeschlagen:", error.message);
-        res.clearCookie('jwt');
-        return res.redirect('/admin/login');
+        console.error("Token-Verifizierung fehlgeschlagen:", error.message);
+
+        // Unterscheiden zwischen API-Anfragen und Browser-Anfragen
+        const isApiRequest = req.headers['accept'] && !req.headers['accept'].includes('text/html');
+
+        if (isApiRequest) {
+            return res.status(401).json({
+                success: false,
+                message: "Ungültiger Token"
+            });
+        } else {
+            res.clearCookie('jwt');
+            return res.redirect('/admin/login');
+        }
     }
 };
 

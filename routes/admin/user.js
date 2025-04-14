@@ -181,13 +181,39 @@ module.exports = () => {
     });
 
     // Route zum Speichern der Änderungen (POST)
+// Route zum Speichern der Änderungen (POST)
     router.post('/edit/:id', (req, res) => {
-        const values = userFields.map(f => req.body[f]);
-        values.push(req.params.id);
-        const { sql } = buildUpdateQuery("user", userFields);
-        userDb.run(sql + ", updated_at = CURRENT_TIMESTAMP", values, function (err) {
-            if (err) return res.status(500).render("error", { message: "Update fehlgeschlagen." });
-            res.redirect("/admin/user/list?updated=true");
+        const userId = req.params.id;
+
+        // Zuerst aktuelle Benutzerdaten abrufen
+        userDb.get("SELECT * FROM user WHERE id = ?", [userId], (err, currentUser) => {
+            if (err || !currentUser) {
+                console.error("Fehler beim Abrufen des Benutzers:", err);
+                return res.status(500).render("error", { message: "Benutzer konnte nicht gefunden werden." });
+            }
+
+            // Nur die Felder aktualisieren, die im Request vorhanden sind
+            // Und nur wenn sie nicht leer sind
+            const valuesToUpdate = userFields.map(field => {
+                const newValue = req.body[field];
+                // Wenn der Wert leer ist, behalte den aktuellen Wert bei
+                return newValue !== undefined && newValue !== '' ? newValue : currentUser[field];
+            });
+
+            // SQL erstellen
+            const setStatements = userFields.map(field => `${field} = ?`).join(', ');
+            const finalSql = `UPDATE user SET ${setStatements}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
+
+            // Werte und ID hinzufügen
+            valuesToUpdate.push(userId);
+
+            userDb.run(finalSql, valuesToUpdate, function (err) {
+                if (err) {
+                    console.error("Fehler beim Aktualisieren des Benutzers:", err);
+                    return res.status(500).render("error", { message: "Update fehlgeschlagen." });
+                }
+                res.redirect("/admin/user/list?updated=true");
+            });
         });
     });
 
