@@ -1,5 +1,5 @@
 {
-  "controller": [
+  "controllers": [
     {
       "type": "EX8-560",
       "preset": {
@@ -38,7 +38,7 @@
       "14": { "battery_cutoff_start": 44.5, "battery_cutoff_end": 42.0 }
     }
   },
-  "engine": [
+  "engines": [
     {
       "type": "G510.1000",
       "preset": {

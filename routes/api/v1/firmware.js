@@ -24,7 +24,7 @@ module.exports = () => {
 
     // Lade Geräteinfos aus Datei
     function loadDevices() {
-        return JSON.parse(fs.readFileSync("devices.json", "utf-8")).controller;
+        return JSON.parse(fs.readFileSync("devices.json", "utf-8")).controllers;
     }
 
     // Auth-Middleware
@@ -78,7 +78,7 @@ module.exports = () => {
         const fw = firmwareList[controllerType];
 
         if (!fw) {
-            return res.status(404).json({ error: `Keine Firmware für Gerät "${controllerType}" gefunden.` });
+            return res.status(404).json({ error: `Keine Firmware für Gerät ${controllerType} gefunden.` });
         }
 
         const updateAvailable = isNewerVersion(currentVersion, fw.version);
@@ -99,7 +99,7 @@ module.exports = () => {
         const fw = firmwareList[controllerType];
 
         if (!fw) {
-            return res.status(404).json({ error: `Keine Firmware für Gerät "${controllerType}" gefunden.` });
+            return res.status(404).json({ error: `Keine Firmware für Gerät ${controllerType} gefunden.` });
         }
 
         res.json(fw);

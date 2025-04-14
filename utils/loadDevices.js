@@ -9,8 +9,8 @@ function loadDevices() {
     } catch (err) {
         console.error("❌ Fehler beim Laden von devices.json:", err.message);
         return {
-            controller: [],
-            engine: [],
+            controllers: [],
+            engines: [],
             battery: { cells: {} }
         };
     }

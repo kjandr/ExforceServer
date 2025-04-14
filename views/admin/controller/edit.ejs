@@ -12,10 +12,10 @@
 <div class="container py-4">
     <form method="POST" action="/admin/controller/edit/<%= controller.id %>" class="edit-form">
         <label for="type">Motor Typ auswählen:</label>
-        <select id="type" name="type"  onchange="applyMotorType()">
+        <select id="type" name="type" onchange="applyMotorType()">
             <option value="none" <%= controller.type === "none" ? "selected" : "" %>>Kein Motor Type</option>
-            <% devices.forEach(d => { %>
-                <option value="<%= d.type %>" <%= controller.type === d.tyoe ? "selected" : "" %>><%= d.type %></option>
+            <% controllers.forEach(d => { %>
+                <option value="<%= d.type %>" <%= controller.type === d.type ? "selected" : "" %>><%= d.type %></option>
             <% }) %>
         </select>
 
@@ -87,7 +87,7 @@
             battery_current_min: 0,
             operating_time: 0
         },
-        <% devices.forEach(d => {
+        <% controllers.forEach(d => {
             const p = d.preset || {}; %>
         "<%= d.type %>": {
             serial_no: "<%= p.serial_no || '' %>",

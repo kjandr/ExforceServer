@@ -3,6 +3,7 @@ const { engineDb } = require("@databases");
 const loadDevices = require("@utils/loadDevices");
 const engineFields = require("@databases/engineFields");
 const { buildInsertQuery, buildUpdateQuery } = require("@databases/sqlBuilder");
+const isApiCall = require("@utils/isApiCall");
 
 module.exports = () => {
     const router = express.Router();
@@ -27,7 +28,7 @@ module.exports = () => {
 
         res.render("admin/engine/add", {
             title: "Neuen Motor hinzufügen",
-            engines: devices.engine
+            engines: devices.engines
         });
     });
 
@@ -36,13 +37,42 @@ module.exports = () => {
         const values = engineFields.map(field => req.body[field]);
         const { sql } = buildInsertQuery("engine", engineFields);
 
+        console.log('📦 Request Body:', JSON.stringify(req.body, null, 2));
+
         engineDb.run(sql, values, function (err) {
             if (err) {
                 console.error("❌ Fehler beim Einfügen:", err.message);
-                return res.status(500).send("Fehler beim Einfügen der Daten.");
+
+                // Prüfen, ob es sich um einen API-Aufruf handelt
+                const isApiRequest = isApiCall(req);
+
+                if (isApiRequest) {
+                    return res.status(500).json({
+                        success: false,
+                        error: "Fehler beim Speichern des Motors",
+                        message: err.message
+                    });
+                } else {
+                    return res.status(500).send("Fehler beim Einfügen der Daten.");
+                }
             }
 
-            res.redirect('/admin/engine/list?created=true');
+            // Prüfen, ob es sich um einen API-Aufruf handelt
+            const isApiRequest = isApiCall(req);
+
+            if (isApiRequest) {
+                return res.status(201).json({
+                    success: true,
+                    message: "Motor erfolgreich erstellt",
+                    id: this.lastID,
+                    data: values.reduce((obj, val, idx) => {
+                        obj[engineFields[idx]] = val;
+                        return obj;
+                    }, {})
+                });
+            } else {
+                res.redirect('/admin/engine/list?created=true');
+            }
         });
     });
 
@@ -65,7 +95,7 @@ module.exports = () => {
             res.render("admin/engine/edit", {
                 title: "Motor bearbeiten",
                 engine,
-                engines: devices.engine
+                engines: devices.engines
             });
         });
     });

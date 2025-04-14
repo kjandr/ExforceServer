@@ -48,6 +48,63 @@ Content-Type: application/json
 
 
 
+### Motor in die Datenbank einfügen
+
+# curl -X POST
+#  http://localhost:8000/admin/engine/add
+#  -H "Content-Type: application/json"
+#  -H "Authorization: Bearer IHR_JWT_TOKEN_HIER"
+#  -d '{
+#    "serial_no": "E12345678",
+#    "remark": "Neuer Testmotor",
+#    "controller_id": "1",
+#    "type": "BLDC",
+#    "current_ki": "0.05",
+#    "current_kp": "0.03",
+#    "freq_foc_khz": "20",
+#    "flux_linkage_mwb": "15.2",
+#    "inductance_uh": "14",
+#    "resistance_mr": "20",
+#    "observer_gain": "0.8",
+#    "current_max": "35",
+#    "erpm_max": "20000",
+#    "wattage_max": "750",
+#    "temp_type": "NTC",
+#    "temp_cutoff_end": "85",
+#    "temp_cutoff_start": "75",
+#    "mileage_km": "0",
+#    "operating_time": "0"
+#  }'
+POST http://localhost:8000/admin/engine/add
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "serial_no": "E12345678",
+  "remark": "Neuer Testmotor",
+  "controller_id": "1",
+  "type": "G510.1000",
+  "current_ki": "0.05",
+  "current_kp": "0.03",
+  "freq_foc_khz": "20",
+  "flux_linkage_mwb": "15.2",
+  "inductance_uh": "14",
+  "resistance_mr": "20",
+  "observer_gain": "0.8",
+  "current_max": "35",
+  "erpm_max": "20000",
+  "wattage_max": "750",
+  "temp_type": "NTC",
+  "temp_cutoff_end": "85",
+  "temp_cutoff_start": "75",
+  "mileage_km": "0",
+  "operating_time": "0"
+}
+
+###
+
+
+
 
 ### Geschützte Route (GET mit Token)
 # curl -X GET http://localhost:8000/test/?uuid=12345A -H "Authorization: Bearer <DEIN-TOKEN>"

@@ -23,7 +23,7 @@ module.exports = () => {
         const devices = loadDevices();
         res.render("admin/controller/add", {
             title: "Neuen Controller hinzufügen",
-            devices: devices.controller,
+            controllers: devices.controllers,
             battery: devices.battery
         });
     });
@@ -84,7 +84,7 @@ module.exports = () => {
             res.render("admin/controller/edit", {
                 title: "Controller bearbeiten",
                 controller,
-                devices: devices.controller,
+                controllers: devices.controllers,
                 battery: devices.battery
             });
         });

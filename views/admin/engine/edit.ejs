@@ -11,11 +11,10 @@
 
 <div class="container py-4">
     <form method="POST" action="/admin/engine/edit/<%= engine.id %>" class="edit-form">
-
         <label for="type">Motor Typ auswählen:</label>
         <select id="type" name="type" onchange="applyEngineType()">
             <option value="none" <%= engine.type === "none" ? "selected" : "" %>>Kein Motor Typ</option>
-            <% devices.forEach(d => { %>
+            <% engines.forEach(d => { %>
                 <option value="<%= d.type %>" <%= engine.type === d.type ? "selected" : "" %>><%= d.type %></option>
             <% }) %>
         </select>
@@ -107,7 +106,7 @@
             mileage_km: 0,
             operating_time: 0
         },
-        <% devices.forEach(d => {
+        <% engines.forEach(d => {
             const p = d.preset || {}; %>
         "<%= d.type %>": {
             serial_no: "<%= p.serial_no || '' %>",

@@ -14,7 +14,7 @@
         <label for="type">Motor Typ auswählen:</label>
         <select id="type" name="type" onchange="applyMotorType()">
             <option value="none" selected>Kein Motor Type</option>
-            <% devices.forEach(e => { %>
+            <% engines.forEach(e => { %>
                 <option value="<%= e.type %>"><%= e.type %></option>
             <% }) %>
         </select>
@@ -84,7 +84,7 @@
 </body>
 
 <script>
-    const engine = {
+    const engines = {
         "none": {
             serial_no: "",
             remark: "",
@@ -106,7 +106,7 @@
             mileage_km: 0,
             operating_time: 0
         },
-        <% devices.forEach(d => {
+        <% engines.forEach(d => {
             const p = d.preset || {}; %>
         "<%= d.type %>": {
             serial_no: "<%= p.serial_no || '' %>",
@@ -134,7 +134,7 @@
 
     function applyMotorType() {
         const selected = document.getElementById("type").value;
-        const values = engine[selected];
+        const values = engines[selected];
         if (!values) return;
 
         Object.entries(values).forEach(([key, val]) => {

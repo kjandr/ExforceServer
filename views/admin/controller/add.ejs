@@ -14,7 +14,7 @@
             <label for="type">Controller Typ auswählen:</label>
             <select id="type" name="type" onchange="applyControllerType()">
                 <option value="none" selected>Kein Controller Type</option>
-                <% devices.forEach(d => { %>
+                <% controllers.forEach(d => { %>
                     <option value="<%= d.type %>"><%= d.type %></option>
                 <% }) %>
             </select>
@@ -86,7 +86,7 @@
             battery_current_min: 0,
             operating_time: 0
         },
-        <% devices.forEach(d => {
+        <% controllers.forEach(d => {
             const p = d.preset || {}; %>
         "<%= d.type %>": {
             serial_no: "<%= p.serial_no || '' %>",
