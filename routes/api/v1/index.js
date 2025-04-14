@@ -21,7 +21,7 @@ module.exports = () => {
     //router.use(validateUUID); // UUID-Validierung für alle Admin-Routen
 
     router.use("/controller", controllerRoutes());
-    router.use("/firmware", firmwareRoutes()); // /admin/user
+    router.use("/firmware", firmwareRoutes());
 
     return router;
 };

@@ -31,7 +31,7 @@ module.exports = () => {
             const enrichedUsers = [];
             let remaining = users.length;
 
-            if (remaining === 0) return res.render("admin/user/list", { users: [], filter, title: "Admin Dashboard" });
+            if (remaining === 0) return res.render("admin/user/list", { users: [], filter, title: "Alle Benutzer" });
 
             users.forEach(user => {
                 logDb.get(
@@ -44,7 +44,7 @@ module.exports = () => {
                         remaining--;
 
                         if (remaining === 0) {
-                            res.render("admin/user/list", { users: enrichedUsers, filter, title: "Admin Dashboard" });
+                            res.render("admin/user/list", { users: enrichedUsers, filter, title: "Alle Benutzer" });
                         }
                     }
                 );

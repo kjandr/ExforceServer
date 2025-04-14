@@ -3,50 +3,50 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const { logFailedAndMaybeBlock } = require("@log");
-const { userDb, logDb} = require("@databases");
+const { userDb, logDb } = require("@databases");
 const { url, secret_key } = require("@config");
+const { buildInsertQuery, buildUpdateQuery } = require("@databases/sqlBuilder");
+const userFields = require("@databases/userFields");
 
 module.exports = () => {
     const router = express.Router();
 
-    // Registrierungs-Route (Neuen Benutzer hinzufuegen)
+    // ✅ Registrierung
     router.post("/register", async (req, res) => {
-        const { password, email, cpu_id } = req.body;
-        const salutation = req.body.salutation || 'Herr';
-        const last_name = req.body.last_name || 'Nachname';
-        const first_name = req.body.first_name || 'Vorname';
-        const role = req.body.role || 'user';
-        const active = req.body.active ?? 0;
+        const { password, ...data } = req.body;
 
-        if (!email || !password) {
-            return res.status(400).json({ message: "EMail und Passwort erforderlich" });
+        if (!data.email || !password) {
+            return res.status(400).json({ message: "E-Mail und Passwort erforderlich" });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        try {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const values = [hashedPassword, ...userFields.map(f => data[f] ?? null)];
+            const { sql } = buildInsertQuery("user", ["password", ...userFields]);
 
-        userDb.run("INSERT INTO user (password, salutation, last_name, first_name, email, role, active, cpu_id) VALUES (?, COALESCE(?, 'Herr'), COALESCE(?, 'Nachname'), COALESCE(?, 'Vorname'), ?, COALESCE(?, 'user'), COALESCE(?, 0), ?)",
-            [hashedPassword, salutation, last_name, first_name, email, role, active, cpu_id],
-            function(err) {
+            userDb.run(sql, values, function (err) {
                 if (err) {
-                    return res.status(400).json({ message: "Benutzername existiert bereits" });
+                    console.error("❌ Register Fehler:", err.message);
+                    return res.status(400).json({ message: "Benutzer existiert bereits" });
                 }
                 res.json({ message: "Benutzer erfolgreich registriert!" });
             });
+        } catch (err) {
+            res.status(500).json({ message: "Fehler beim Hashing" });
+        }
     });
 
-    // Login-Route (gibt JWT zurueck)
+    // ✅ Login
     router.post("/login", (req, res) => {
         const { email, password, cpu_id } = req.body;
-        const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
 
         if (!email || !password || !cpu_id) {
-            return res.status(400).json({ message: "E-Mail, Passwort und CPU-ID erforderlich" });
+            return res.status(400).json({ message: "E-Mail, Passwort & CPU-ID erforderlich" });
         }
 
-        // Schritt 1: Nutzer anhand E-Mail holen (egal ob aktiv oder nicht)
         userDb.get("SELECT * FROM user WHERE email = ?", [email], async (err, user) => {
             if (err || !user) {
-                // User nicht vorhanden → loggen & prüfen
                 logFailedAndMaybeBlock(null, email, cpu_id, ip, res);
                 return;
             }
@@ -56,19 +56,16 @@ module.exports = () => {
             const isActive = user.active === 1;
 
             if (!isMatch || !isCpuMatch || !isActive) {
-                // Falsche Daten oder inaktiver Nutzer
                 logFailedAndMaybeBlock(user.id, email, cpu_id, ip, res);
                 return;
             }
 
-            // ✅ Erfolgreicher Login
             const token = jwt.sign(
-                { id: user.id, cpu_id: user.cpu_id, email: user.email, role: user.role },
+                { id: user.id, email: user.email, role: user.role, cpu_id: user.cpu_id },
                 secret_key,
                 { expiresIn: "1h" }
             );
 
-            // Log Erfolg
             logDb.run(
                 "INSERT INTO login_logs (user_id, email, cpu_id, ip, success) VALUES (?, ?, ?, ?, 1)",
                 [user.id, email, cpu_id, ip]
@@ -78,7 +75,7 @@ module.exports = () => {
         });
     });
 
-    // Passwort Reset anfordern
+    // ✅ Passwort Reset anfordern
     router.post("/request-password-reset", (req, res) => {
         const { email } = req.body;
         if (!email) return res.status(400).json({ message: "E-Mail erforderlich" });
@@ -89,44 +86,42 @@ module.exports = () => {
             }
 
             const resetToken = jwt.sign({ id: user.id, email }, secret_key, { expiresIn: "15m" });
-            const resetLink = url.baseURL + `/api/v1/user/reset-password?token=${resetToken}`;
+            const resetLink = `${url.baseURL}/api/v1/user/reset-password?token=${resetToken}`;
 
-            // Hier würdest du eine E-Mail versenden – wir loggen es nur:
+            // Hier würdest du eine E-Mail senden. Nur Konsole für jetzt:
             console.log("🔗 Passwort-Reset-Link:", resetLink);
 
-            return res.json({ message: "Reset-Link wurde versendet (simuliert)" });
+            res.json({ message: "Reset-Link wurde (simuliert) versendet" });
         });
     });
 
-    // Formular: Neues Passwort eingeben
+    // ✅ GET /reset-password?token=...
     router.get("/reset-password", (req, res) => {
         const { token } = req.query;
         if (!token) return res.status(400).send("Token fehlt");
 
         jwt.verify(token, secret_key, (err, decoded) => {
             if (err) return res.status(403).send("Ungültiger oder abgelaufener Token");
-
-            res.render("api/v1/user/reset-password", { token }); // du brauchst ein EJS-Template
+            res.render("api/v1/user/reset-password", { token }); // EJS-View nötig
         });
     });
 
-    // Reset Passwort
+    // ✅ POST /reset-password
     router.post("/reset-password", async (req, res) => {
         const { token, password, confirm } = req.body;
 
         if (!token || !password || password !== confirm) {
-            return res.status(400).send("Ungueltige Eingaben");
+            return res.status(400).send("Ungültige Eingaben");
         }
 
         jwt.verify(token, secret_key, async (err, decoded) => {
-            if (err) return res.status(403).send("Ungueltiger oder abgelaufener Token");
+            if (err) return res.status(403).send("Ungültiger oder abgelaufener Token");
 
             const hashed = await bcrypt.hash(password, 10);
-            userDb.run("UPDATE user SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [hashed, decoded.id], (err) => {
-                if (err) {
-                    return res.status(500).send("Fehler beim Speichern");
-                }
-                res.send("✅ Passwort erfolgreich geaendert");
+            const { sql } = buildUpdateQuery("user", ["password"]);
+            userDb.run(sql, [hashed, decoded.id], (err) => {
+                if (err) return res.status(500).send("Fehler beim Speichern");
+                res.send("✅ Passwort erfolgreich geändert");
             });
         });
     });
