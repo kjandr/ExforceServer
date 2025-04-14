@@ -5,8 +5,8 @@ const bodyParser = require("body-parser");
 const { authenticateJWT, authorizeRole, validateUUID } = require("@middleware/auth");
 const { url, viewsPath, partialsPath } = require("@config");
 const cookieParser = require('cookie-parser');
-const { initializeTables } = require("@databases");
-const ensureEngineTableHasOperatingTime = require("@utils/migrateEngineTable");
+const {  engineDb, userDb, controllerDb, logDb, initializeTables } = require("@databases");
+const ensureColumnsExist = require("@utils/ensureColumnsExist");
 
 
 // Express-App erstellen
@@ -56,10 +56,39 @@ app.get("/test",
 // Server starten
 async function startServer() {
     try {
-        await ensureEngineTableHasOperatingTime();
-
         // Datenbanktabellen initialisieren
         await initializeTables();
+
+        await ensureColumnsExist([
+            {
+                db: engineDb,
+                table: "engine",
+                columns: [
+                    { name: "operating_time", definition: "INTEGER DEFAULT 0" }
+                ]
+            },
+            {
+                db: userDb,
+                table: "user",
+                columns: [
+                    { name: "cpu_id", definition: "TEXT NOT NULL DEFAULT ''" }
+                ]
+            },
+            {
+                db: controllerDb,
+                table: "controller",
+                columns: [
+                    { name: "operating_time", definition: "INTEGER DEFAULT 0" }
+                ]
+            },
+            {
+                db: logDb,
+                table: "login_logs",
+                columns: [
+                    { name: "ip", definition: "TEXT" }
+                ]
+            }
+        ]);
 
         // Server starten
         app.listen(url.port, () => {

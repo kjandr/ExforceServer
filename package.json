@@ -29,6 +29,7 @@
     "@log": "./log",
     "@middleware": "./middleware",
     "@controllers": "./controllers",
-    "@utils": "utils"
+    "@utils": "./utils",
+    "@schemas": "./schemas"
   }
 }

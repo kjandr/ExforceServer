@@ -1,6 +1,8 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const { userDb, logDb } = require("@databases");
+const userFields = require("@databases/userFields");
+const { buildInsertQuery, buildUpdateQuery } = require("@databases/sqlBuilder");
 
 module.exports = () => {
     const router = express.Router();
@@ -12,22 +14,6 @@ module.exports = () => {
     router.get("/ping", (req, res) => {
         res.send("User route works!");
     });
-
-    router.get('/list2', (req, res) => {
-        userDb.all("SELECT * FROM user", (err, users) => {
-            if (err) {
-                console.error("Fehler beim Laden der Benutzer:", err.message);
-                return res.status(500).send("Fehler beim Abrufen der Benutzer");
-            }
-
-            console.log("➡️ Benutzer gefunden:", users.length);
-            res.render("admin/user/list2", {
-                title: "Liste 2",
-                users // <--- wichtig!
-            });
-        });
-    });
-
 
 
     router.get("/list", (req, res) => {
@@ -66,7 +52,7 @@ module.exports = () => {
         });
     });
 
-    router.get("/active", (req, res) => {
+    router.get("/list-active", (req, res) => {
         // Den Filterwert aus der Query-Parameter extrahieren
         const filter = req.query.filter || ""; // Standard: leer
         const sql = filter
@@ -112,7 +98,7 @@ module.exports = () => {
         });
     });
 
-    router.get("/inactive", (req, res) => {
+    router.get("/list-inactive", (req, res) => {
         // Den Filterwert aus der Query-Parameter extrahieren
         const filter = req.query.filter || ""; // Standard: leer
         const sql = filter
@@ -159,178 +145,91 @@ module.exports = () => {
         });
     });
 
-    // API-Route zum Löschen eines Benutzers
-    router.post("/delete", (req, res) => {
-        const { id } = req.body;
-        if (!id) {
-            return res.status(400).send("Benutzer-ID ist erforderlich");
-        }
-        userDb.run("DELETE FROM user WHERE id = ?", [id], function(err) {
-            if (err) {
-                console.error("Fehler beim Löschen des Benutzers:", err.message);
-                return res.status(500).send("Interner Serverfehler");
-            }
-            res.redirect("/admin/user");
-        });
+    // GET: Neues Benutzerformular anzeigen
+    router.get('/add', (req, res) => {
+        res.render("admin/user/add", { title: "Neuen Benutzer hinzufügen" });
     });
 
-    // Neue Route: Aktivierung eines Benutzers
-    router.post("/activate", (req, res) => {
-        const { id } = req.body;
-        if (!id) {
-            return res.status(400).send("Benutzer-ID ist erforderlich");
-        }
-        userDb.run("UPDATE user SET active = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [id], function(err) {
-            if (err) {
-                console.error("Fehler beim Aktivieren des Benutzers:", err.message);
-                return res.status(500).send("Interner Serverfehler");
-            }
-            // Nach erfolgreicher Aktivierung zur Inaktiv-Liste weiterleiten
-            res.redirect("/admin/user");
-        });
-    });
+    // POST: Neuen Benutzer speichern
+    router.post('/add', async (req, res) => {
+        const { password, ...formData } = req.body;
+        console.log("Body received:", req.body);
+        if (!formData.email || !password) return res.status(400).render("error", { message: "E-Mail & Passwort nötig." });
 
-    // API-Route zum Deaktivieren eines Benutzers
-    router.post("/deactivate", (req, res) => {
-        const { id } = req.body;
-        if (!id) {
-            return res.status(400).send("Benutzer-ID ist erforderlich");
+        try {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const values = [
+                hashedPassword,
+                ...userFields.map(f => formData[f] ?? null)
+            ];
+            const { sql } = buildInsertQuery("user", ["password", ...userFields]);
+            userDb.run(sql, values, function (err) {
+                if (err) return res.status(500).render("error", { message: "Einfügen fehlgeschlagen" });
+                res.redirect("/admin/user/list?created=true");
+            });
+        } catch (e) {
+            res.status(500).render("error", { message: "Fehler beim Passwort-Hashing" });
         }
-        userDb.run("UPDATE user SET active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [id], function(err) {
-            if (err) {
-                console.error("Fehler beim Deaktivieren des Benutzers:", err.message);
-                return res.status(500).send("Interner Serverfehler");
-            }
-            res.redirect("/admin/user");
-        });
     });
 
     // Route zum Editieren eines Users (GET)
     router.get('/edit/:id', (req, res) => {
-        const userId = req.params.id;
-
-        // User-Daten aus der Datenbank holen
-        userDb.get("SELECT * FROM user WHERE id = ?", [userId], (err, user) => {
-            if (err) {
-                console.error("Datenbankfehler:", err);
-                return res.status(500).send("Datenbankfehler beim Abrufen des Users");
-            }
-
-            if (!user) {
-                return res.status(404).send("User nicht gefunden");
-            }
-
-            // Den User-Edit-View rendern
-            res.render("admin/user/edit", {
-                title: "Benutzer bearbeiten",
-                user
-            });
-
+        userDb.get("SELECT * FROM user WHERE id = ?", [req.params.id], (err, user) => {
+            if (err || !user) return res.status(404).render("error", { message: "User nicht gefunden" });
+            res.render("admin/user/edit", { title: "Benutzer bearbeiten", user });
         });
     });
 
     // Route zum Speichern der Änderungen (POST)
     router.post('/edit/:id', (req, res) => {
-        const userId = req.params.id;
-        const {salutation, first_name, last_name, email, role, active} = req.body;
-
-        userDb.run(
-            `UPDATE user SET
-                 salutation = ?,
-                 first_name = ?,
-                 last_name = ?,
-                 email = ?,
-                 role = ?,
-                 active = ?,
-                 updated_at = CURRENT_TIMESTAMP
-             WHERE id = ?`,
-            [salutation, first_name, last_name, email, role, active, userId],
-            function (err) {
-                if (err) {
-                    console.error("Fehler beim Aktualisieren des Users:", err);
-                    return res.status(500).send("Datenbankfehler beim Aktualisieren");
-                }
-                res.redirect('/admin/user/list?updated=true');
-            }
-        );
-    });
-
-    // GET: Neues Benutzerformular anzeigen
-    router.get('/add', (req, res) => {
-        res.render('admin/user/add', {
-            title: "Neuen Benutzer hinzufügen"
+        const values = userFields.map(f => req.body[f]);
+        values.push(req.params.id);
+        const { sql } = buildUpdateQuery("user", userFields);
+        userDb.run(sql + ", updated_at = CURRENT_TIMESTAMP", values, function (err) {
+            if (err) return res.status(500).render("error", { message: "Update fehlgeschlagen." });
+            res.redirect("/admin/user/list?updated=true");
         });
     });
 
-    // POST: Neuen Benutzer speichern
-    router.post('/add', async (req, res) => {
-        const {
-            salutation,
-            first_name,
-            last_name,
-            email,
-            role,
-            active,
-            password
-        } = req.body;
-
-        if (!email || !password) {
-            return res.status(400).render("error", {
-                message: "E-Mail und Passwort sind erforderlich."
-            });
-        }
-
-        try {
-            const hashedPassword = await bcrypt.hash(password, 10);
-            const cpu_id = "0987654321"
-            userDb.run(`
-            INSERT INTO user (password, salutation, last_name, first_name, email, role, active, cpu_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `, [hashedPassword, salutation, first_name, last_name, email, role, active, cpu_id], function (err) {
-                if (err) {
-                    console.error("Fehler beim Einfügen:", err.message);
-                    return res.status(500).render("error", { message: "Fehler beim Speichern des Benutzers." });
-                }
-
-                res.redirect("/admin/user/list?created=true");
-            });
-        } catch (e) {
-            console.error("Hash-Fehler:", e);
-            res.status(500).render("error", { message: "Fehler beim Verschlüsseln des Passworts." });
-        }
+    // API-Route zum Löschen eines Benutzers
+    router.post("/delete", (req, res) => {
+        const { id } = req.body;
+        if (!id) return res.status(400).send("ID fehlt");
+        userDb.run("DELETE FROM user WHERE id = ?", [id], function (err) {
+            if (err) return res.status(500).send("Löschen fehlgeschlagen");
+            res.redirect("/admin/user/list?deleted=true");
+        });
     });
 
 
+    // Neue Route: Aktivierung eines Benutzers
+    router.post("/activate", (req, res) => {
+        userDb.run("UPDATE user SET active = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [req.body.id], err => {
+            if (err) return res.status(500).send("Fehler bei Aktivierung");
+            res.redirect("/admin/user/list");
+        });
+    });
+
+    // API-Route zum Deaktivieren eines Benutzers
+    router.post("/deactivate", (req, res) => {
+        userDb.run("UPDATE user SET active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [req.body.id], err => {
+            if (err) return res.status(500).send("Fehler bei Deaktivierung");
+            res.redirect("/admin/user/list");
+        });
+    });
+
     // GET: Formular anzeigen
     router.get("/change-password/:id", (req, res) => {
-        const id = req.params.id;
-        if (!id) return res.status(400).render("error", { message: "Benutzer-ID fehlt" });
-
-        res.render("admin/user/change-password", { id });
+        res.render("admin/user/change-password", { id: req.params.id });
     });
 
     // POST: Passwort speichern
     router.post("/change-password/:id", async (req, res) => {
-        const id = req.params.id;
-        const { newPassword } = req.body;
-
-        if (!id || !newPassword) {
-            return res.status(400).render("error", { message: "Alle Felder müssen ausgefüllt werden." });
-        }
-
-        try {
-            const hashed = await bcrypt.hash(newPassword, 10);
-            userDb.run("UPDATE user SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [hashed, id], function (err) {
-                if (err) {
-                    console.error("Fehler beim Ändern des Passworts:", err.message);
-                    return res.status(500).render("error", { message: "Fehler beim Aktualisieren des Passworts." });
-                }
-                res.redirect("/admin/user");
-            });
-        } catch (e) {
-            console.error(e);
-            res.status(500).render("error", { message: "Fehler beim Hashen des Passworts." });
-        }
+        const hashed = await bcrypt.hash(req.body.newPassword, 10);
+        userDb.run("UPDATE user SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [hashed, req.params.id], function (err) {
+            if (err) return res.status(500).render("error", { message: "Passwort-Update fehlgeschlagen" });
+            res.redirect("/admin/user/list?passwordChanged=true");
+        });
     });
 
     return router;

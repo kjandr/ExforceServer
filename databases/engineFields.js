@@ -1,0 +1,21 @@
+module.exports = [
+    "serial_no",
+    "remark",
+    "controller_id",
+    "type",
+    "current_ki",
+    "current_kp",
+    "freq_foc_khz",
+    "flux_linkage_mwb",
+    "inductance_uh",
+    "resistance_mr",
+    "observer_gain",
+    "current_max",
+    "erpm_max",
+    "wattage_max",
+    "temp_type",
+    "temp_cutoff_end",
+    "temp_cutoff_start",
+    "mileage_km",
+    "operating_time"
+];
