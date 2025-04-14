@@ -1,6 +1,6 @@
 const express = require("express");
+const proxy = require("express-http-proxy");
 const { authenticateJWT , authorizeRole, validateUUID } = require("@middleware/auth");
-const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const userRoutes = require("../user");
 
@@ -21,29 +21,42 @@ module.exports = () => {
 
     // Proxy-Route zu einem externen API-Server
     // Ersetze IP_ADRESSE und PORT durch die tatsächlichen Werte
-    router.use("/", createProxyMiddleware({
-        target: 'http://localhost:4444', // Ziel-Server
-        changeOrigin: true,
-        // Optional: Wenn du einen Basis-Pfad entfernen möchtest
-        // pathRewrite: {
-        //     '^/api/v1': '/' // Entfernt /api/v1 aus dem Pfad für den Zielserver
-        // },
-        onProxyReq: (proxyReq, req, res) => {
-            // Optional: JWT-Token weiterleiten
-            if (req.headers.authorization) {
-                proxyReq.setHeader('Authorization', req.headers.authorization);
-            }
-            console.log(`Weiterleitung an externen Server: ${req.method} ${req.originalUrl}`);
-        },
-        onError: (err, req, res) => {
-            console.error('Proxy-Fehler:', err);
-            res.status(500).json({
-                success: false,
-                message: 'Fehler bei der Verbindung zum externen Server',
-                error: err.message
-            });
-        }
-    }));
+    router.use(
+        "/",
+        proxy("http://localhost:4444", {
+            proxyReqPathResolver: (req) => {
+                // Optional: Pfade modifizieren (z. B. /api/v1 entfernen)
+                // Hier kann bei Bedarf eine Path-Rewrite-Regel hinterlegt werden.
+                return req.originalUrl;
+            },
+            proxyReqOptDecorator: (proxyReqOpts, originalReq) => {
+                // Optional: Headers bearbeiten (z. B. Auth-Token hinzufügen)
+                if (originalReq.headers.authorization) {
+                    proxyReqOpts.headers["Authorization"] = originalReq.headers.authorization;
+                }
+                return proxyReqOpts;
+            },
+            userResDecorator: (proxyRes, proxyResData) => {
+                // Optional: Antwort des Proxys bearbeiten
+                try {
+                    console.log(`Externe Antwort erhalten: ${proxyRes.statusCode}`);
+                    return proxyResData; // Antwort unverändert zurückgeben
+                } catch (err) {
+                    console.error("Fehler bei der Antwortbearbeitung:", err);
+                    throw err;
+                }
+            },
+            limit: "10mb", // Optional: Upload-Größenlimit setzen
+            onError: (err, req, res) => {
+                console.error("Proxy-Fehler:", err);
+                res.status(500).json({
+                    success: false,
+                    message: "Fehler bei der Verbindung zum externen Server",
+                    error: err.message,
+                });
+            },
+        })
+    );
 
     return router;
 };
