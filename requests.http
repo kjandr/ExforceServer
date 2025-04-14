@@ -113,29 +113,29 @@ Authorization: Bearer {{access_token}}
 
 
 ### Firmware Check EX8-620
-# curl -X GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&type=EX8-620 -H "Authorization: Bearer <DEIN-TOKEN>"
-GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&type=EX8-620
+# curl -X GET http://localhost:8000/api/v2/firmware/check?version=1.3.0&12345A&type=EX8-620 -H "Authorization: Bearer <DEIN-TOKEN>"
+GET http://localhost:8000/api/v2/firmware/check?version=1.3.0&12345A&type=EX8-620
 Authorization: Bearer {{access_token}}
 
 ### Firmware Check EX8-560
-# curl -X GET http://localhost:8000/api/v1/firmware/check?version=1.2.0&12345A&type=EX8-560 -H "Authorization: Bearer <DEIN-TOKEN>"
-GET http://localhost:8000/api/v1/firmware/check?version=1.2.0&12345A&type=EX8-560
+# curl -X GET http://localhost:8000/api/v2/firmware/check?version=1.2.0&12345A&type=EX8-560 -H "Authorization: Bearer <DEIN-TOKEN>"
+GET http://localhost:8000/api/v2/firmware/check?version=1.2.0&12345A&type=EX8-560
 Authorization: Bearer {{access_token}}
 
 ### Firmware Check EX8-560 kein UPDATE
-# curl -X GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&type=EX8-560 -H "Authorization: Bearer <DEIN-TOKEN>"
-GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&type=EX8-560
+# curl -X GET http://localhost:8000/api/v2/firmware/check?version=1.3.0&12345A&type=EX8-560 -H "Authorization: Bearer <DEIN-TOKEN>"
+GET http://localhost:8000/api/v2/firmware/check?version=1.3.0&12345A&type=EX8-560
 Authorization: Bearer {{access_token}}
 
 ### Firmware Check EX8-560 kein DEVICE
-# curl -X GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&type=EX8-111 -H "Authorization: Bearer <DEIN-TOKEN>"
-GET http://localhost:8000/api/v1/firmware/check?version=1.3.0&12345A&type=EX8-111
+# curl -X GET http://localhost:8000/api/v2/firmware/check?version=1.3.0&12345A&type=EX8-111 -H "Authorization: Bearer <DEIN-TOKEN>"
+GET http://localhost:8000/api/v2/firmware/check?version=1.3.0&12345A&type=EX8-111
 Authorization: Bearer {{access_token}}
 
 
 ###
 # curl -X POST http://localhost:8000/user/request-password-reset -H "Content-Type: application/json" -d '{"email": "test@test.com"}'
-POST http://localhost:8000/api/v1/user/request-password-reset
+POST http://localhost:8000/api/v2/user/request-password-reset
 Content-Type: application/json
 
 {"email": "test@test.com"}
