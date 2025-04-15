@@ -14,7 +14,8 @@ module.exports = {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         active BOOLEAN DEFAULT 0,
-        cpu_id TEXT NOT NULL
+        cpu_id TEXT NOT NULL,
+        mobile TEXT
       )`
     },
     login_logs: {

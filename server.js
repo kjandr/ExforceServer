@@ -36,6 +36,10 @@ app.locals.partials = partialsPath;
 
 const apiV1Routes = require("./routes/api/v1/index")();
 app.use("/api/v1", apiV1Routes);
+const apiV2Routes = require("./routes/api/v2/index")();
+app.use("/api/v2", apiV2Routes);
+const apiV3Routes = require("./routes/api/v3/index")();
+app.use("/api/v3", apiV3Routes);
 
 const adminRoutes = require("./routes/admin/index")();
 app.use("/admin", adminRoutes);

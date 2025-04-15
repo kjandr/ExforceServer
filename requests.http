@@ -3,7 +3,7 @@
 
 ### Registrierung (POST)
 # curl -X POST http://localhost:8000/user/register -H "Content-Type: application/json" -d '{"email": "test@test.com", "password": "123", "cpu_id": "0987654321"}'
-POST http://localhost:8000/api/v1/user/register
+POST http://localhost:50837/api/v2/user/register
 Content-Type: application/json
 
 {"email": "test@test.com", "password": "123", "cpu_id": "0987654321"}
@@ -13,7 +13,7 @@ Content-Type: application/json
 
 ### Login (POST)
 # curl -X POST http://localhost:8000/user/login -H "Content-Type: application/json" -d '{"email": "test@test.com", "password": "123", "cpu_id": "0987654321"}'
-POST http://localhost:8000/api/v1/user/login
+POST http://localhost:50837/api/v2/user/login
 Content-Type: application/json
 
 {"email": "test@test.com", "password": "123", "cpu_id": "0987654321"}
@@ -26,7 +26,7 @@ Content-Type: application/json
 
 ### Login (POST) fail
 # curl -X POST http://localhost:8000/user/login -H "Content-Type: application/json" -d '{"email": "test@test.com", "password": "123", "cpu_id": "0987654321"}'
-POST http://localhost:8000/api/v1/user/login
+POST http://localhost:50837/api/v2/user/login
 Content-Type: application/json
 
 {"email": "test@test.com", "password": "122", "cpu_id": "0987654321"}
@@ -38,7 +38,7 @@ Content-Type: application/json
 
 ### Controller in die Datenbank einfügen
 # curl -X POST "http://localhost:8000/admin/controller/add" -H "Content-Type: application/json" -H "Accept: application/json" -d '{"serial_no": "SN1234567890","remark": "Test_Eintrag","user_id": 1,"type": "Controller_Type_A","uuid": "12345A","battery_cutoff_end": 3.7,"battery_cutoff_start": 4.2,"battery_cells": 6,"battery_ah": 2.4,"battery_current_max": 20,"battery_current_min": 2,"operating_time": 120}
-POST http://localhost:8000/admin/controller/add
+POST http://localhost:50837/admin/controller/add
 Authorization: Bearer {{access_token}}
 Content-Type: application/json
 
@@ -75,7 +75,7 @@ Content-Type: application/json
 #    "mileage_km": "0",
 #    "operating_time": "0"
 #  }'
-POST http://localhost:8000/admin/engine/add
+POST http://localhost:50837/admin/engine/add
 Authorization: Bearer {{access_token}}
 Content-Type: application/json
 
@@ -108,34 +108,39 @@ Content-Type: application/json
 
 ### Geschützte Route (GET mit Token)
 # curl -X GET http://localhost:8000/test/?uuid=12345A -H "Authorization: Bearer <DEIN-TOKEN>"
-GET http://localhost:8000/test/?uuid=12345A
+GET http://localhost:50837/test/?uuid=12345A
 Authorization: Bearer {{access_token}}
 
 
 ### Firmware Check EX8-620
 # curl -X GET http://localhost:8000/api/v2/firmware/check?version=1.3.0&12345A&type=EX8-620 -H "Authorization: Bearer <DEIN-TOKEN>"
-GET http://localhost:8000/api/v2/firmware/check?version=1.3.0&12345A&type=EX8-620
+GET http://localhost:50837/api/v2/update/check?type=EX8-560&controller=1.0.0.0&pc=2.0.0.0&mobile=1.5.0.0&gateway=1.0.0.0&beta=true
+Authorization: Bearer {{access_token}}
+
+### Firmware Check EX8-620
+#
+GET http://localhost:50837/api/v2/update/check?type=EX8-560&controller=4.0.0.8&beta=true
 Authorization: Bearer {{access_token}}
 
 ### Firmware Check EX8-560
 # curl -X GET http://localhost:8000/api/v2/firmware/check?version=1.2.0&12345A&type=EX8-560 -H "Authorization: Bearer <DEIN-TOKEN>"
-GET http://localhost:8000/api/v2/firmware/check?version=1.2.0&12345A&type=EX8-560
+GET http://localhost:50837/api/v2/update/check?version=1.2.0&12345A&type=EX8-560
 Authorization: Bearer {{access_token}}
 
 ### Firmware Check EX8-560 kein UPDATE
 # curl -X GET http://localhost:8000/api/v2/firmware/check?version=1.3.0&12345A&type=EX8-560 -H "Authorization: Bearer <DEIN-TOKEN>"
-GET http://localhost:8000/api/v2/firmware/check?version=1.3.0&12345A&type=EX8-560
+GET http://localhost:50837/api/v2/update/check?version=1.3.0&12345A&type=EX8-560
 Authorization: Bearer {{access_token}}
 
 ### Firmware Check EX8-560 kein DEVICE
 # curl -X GET http://localhost:8000/api/v2/firmware/check?version=1.3.0&12345A&type=EX8-111 -H "Authorization: Bearer <DEIN-TOKEN>"
-GET http://localhost:8000/api/v2/firmware/check?version=1.3.0&12345A&type=EX8-111
+GET http://localhost:50837/api/v2/update/check?version=1.3.0&12345A&type=EX8-111
 Authorization: Bearer {{access_token}}
 
 
 ###
 # curl -X POST http://localhost:8000/user/request-password-reset -H "Content-Type: application/json" -d '{"email": "test@test.com"}'
-POST http://localhost:8000/api/v2/user/request-password-reset
+POST http://localhost:50837/api/v2/user/request-password-reset
 Content-Type: application/json
 
 {"email": "test@test.com"}

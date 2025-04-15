@@ -5,5 +5,6 @@ module.exports = [
     "email",
     "role",
     "active",
-    "cpu_id"
+    "cpu_id",
+    "mobile"
 ];
