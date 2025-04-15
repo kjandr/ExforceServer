@@ -2,7 +2,7 @@ const express = require("express");
 const proxy = require("express-http-proxy");
 const { authenticateJWT , authorizeRole, validateUUID } = require("@middleware/auth");
 
-const userRoutes = require("../user");
+const userRoutes = require("../v3/user");
 
 module.exports = () => {
     const router = express.Router();
@@ -12,18 +12,11 @@ module.exports = () => {
         next();
     });
 
-    // API V1-Subrouten definieren
-    router.use("/user", userRoutes());
-
-    // Middleware für alle Admin-Routen hinzufügen
-    router.use(authenticateJWT); // Authentifizierung für alle Admin-Routen
-    //router.use(validateUUID); // UUID-Validierung für alle Admin-Routen
-
     // Proxy-Route zu einem externen API-Server
     // Ersetze IP_ADRESSE und PORT durch die tatsächlichen Werte
     router.use(
         "/",
-        proxy("http://localhost:4444", {
+        proxy("http://localhost:4441", {
             proxyReqPathResolver: (req) => {
                 // Optional: Pfade modifizieren (z. B. /api/v1 entfernen)
                 // Hier kann bei Bedarf eine Path-Rewrite-Regel hinterlegt werden.

@@ -11,7 +11,7 @@ module.exports = {
     url: (() => {
         const protocol = process.env.APP_PROTOCOL || 'http';
         const host = process.env.APP_HOST || 'localhost';
-        const port = process.env.APP_PORT || '8000';
+        const port = process.env.APP_PORT || '50837';
 
         // Berechne die Basis-URL mit Protokoll, Host und Port (falls angegeben)
         const portPart = port ? `:${port}` : '';
