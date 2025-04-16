@@ -4,6 +4,7 @@ const { authenticateJWT , authorizeRole, validateUUID } = require("@middleware/a
 
 const userRoutes = require("./user");
 const updateRoutes = require("./update");
+const confRoutes = require("./conf");
 
 module.exports = () => {
     const router = express.Router();
@@ -13,7 +14,7 @@ module.exports = () => {
         next();
     });
 
-    // API V1-Subrouten definieren
+    // API V2-Subrouten definieren
     router.use("/user", userRoutes());
 
     // Middleware für alle Admin-Routen hinzufügen
@@ -21,6 +22,7 @@ module.exports = () => {
     //router.use(validateUUID); // UUID-Validierung für alle Admin-Routen
 
     router.use("/update", updateRoutes());
+    router.use("/conf", confRoutes());
 
     // Proxy-Route zu einem externen API-Server
     // Ersetze IP_ADRESSE und PORT durch die tatsächlichen Werte
