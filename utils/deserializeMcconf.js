@@ -1,5 +1,3 @@
-const { Buffer } = require('buffer');
-
 function deserializeMcconf_V1(buffer) {
     // Entferne VESC-Rahmen: Annahme, dass die ersten 2 und letzten 3 Bytes Rahmen sind
     const payload = buffer; //.slice(2, -3);

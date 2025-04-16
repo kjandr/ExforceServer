@@ -5,6 +5,7 @@ const {
     V2
 } = require("@utils/deserializeMcconf");
 const { decipher, encipher } = require("@utils/crypto");
+const { METADATA, FIELD_MAP } = require("@utils/confMcFields");
 
 const MCCONF_SIGNATURE_V1 = 2525666056;
 const MCCONF_SIGNATURE_V2 = 87654321; // Beispielwert Version 2
@@ -108,13 +109,27 @@ module.exports = () => {
                     .json({ error: `Unbekannte Signatur: ${signature}` });
             }
 
-            //console.log(conf);
+            // 5) Mapping anwenden
+            const filtered = {};
+            for (const [origKey, { alias, meta }] of Object.entries(FIELD_MAP)) {
+                if (conf.hasOwnProperty(origKey) && METADATA[origKey]) {
+                    // Baue den Eintrag mit value + allen gewünschten Meta‑Felder
+                    const entry = { value: conf[origKey] };
+                    for (const m of meta) {
+                        if (METADATA[origKey][m] !== undefined) {
+                            entry[m] = METADATA[origKey][m];
+                        }
+                    }
+                    filtered[alias] = entry;
+                }
+            }
+            //console.log(filtered);
 
-            // 5) Antwort
+            // 6) Antwort
             res.json({
                 uuid,
                 version,
-                conf
+                conf: filtered
             });
         } catch (err) {
             next(err);

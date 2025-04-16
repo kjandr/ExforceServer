@@ -23,6 +23,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.urlencoded({ extended: true })); //axios
 app.use(express.static('public'));
+app.set("json spaces", 0);
 
 
 // Views-Pfad setzen
