@@ -1,14 +1,51 @@
 const express = require("express");
 const { Buffer } = require('buffer');
-const {
-    deserializeMcconf_V1,
-    V2
-} = require("@utils/deserializeMcconf");
-const { decipher, encipher } = require("@utils/crypto");
-const { METADATA, FIELD_MAP } = require("@utils/confMcFields");
+const { deserializeMcconf_V1 } = require("@utils/deserializeMcconf");
+const { deserializeEbikeconf_V1 } = require("@utils/deserializeEbikeconf");
+const { deserializeAppconf_V1 } = require("@utils/deserializeAppconf");
+const { METADATA_MC, FIELD_MAP_MC } = require("@utils/confMcFields");
+const { METADATA_EBIKE, FIELD_MAP_EBIKE } = require("@utils/confEbikeFields");
+const { METADATA_APP, FIELD_MAP_APP } = require("@utils/confAppFields");
+const { decipher } = require("@utils/crypto");
 
-const MCCONF_SIGNATURE_V1 = 2525666056;
-const MCCONF_SIGNATURE_V2 = 87654321; // Beispielwert Version 2
+const SIGNATURES = {
+    mc: { v1: 2525666056 },
+    ebike: { v1: 1111649770 },
+    app: { v1: 3733512279 }
+};
+
+const CONFIG_MAP = {
+    mc: {
+        deserialize: deserializeMcconf_V1,
+        fieldMap: FIELD_MAP_MC,
+        metadata: METADATA_MC,
+        signatures: SIGNATURES.mc
+    },
+    ebike: {
+        deserialize: deserializeEbikeconf_V1,
+        fieldMap: FIELD_MAP_EBIKE,
+        metadata: METADATA_EBIKE,
+        signatures: SIGNATURES.ebike
+    },
+    app: {
+        deserialize: deserializeAppconf_V1,
+        fieldMap: FIELD_MAP_APP,
+        metadata: METADATA_APP,
+        signatures: SIGNATURES.app
+    }
+};
+
+function versionLt(a, b) {
+    const pa = a.split(".").map(Number);
+    const pb = b.split(".").map(Number);
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+        const na = pa[i] || 0;
+        const nb = pb[i] || 0;
+        if (na < nb) return true;
+        if (na > nb) return false;
+    }
+    return false;
+}
 
 /**
  * Entschlüsselt den gesamten Buffer analog zu deinem C++ decrypt():
@@ -18,7 +55,7 @@ const MCCONF_SIGNATURE_V2 = 87654321; // Beispielwert Version 2
  */
 function decryptConf(buffer, version) {
     // Pre-v2.5.5.3 noch unverschlüsselt zurückgeben
-    if (version < "2.5.5.3") {
+    if (versionLt(version, "2.5.5.3")) {
         return { plain: Buffer.from(buffer), salt: null };
     }
     const len = buffer.length;
@@ -62,8 +99,55 @@ function decryptConf(buffer, version) {
     return { plain, salt };
 }
 
+/**
+ * POST /..
+ * Body: {
+ *   uuid: string,
+ *   version: string,
+ *   conf: string  // Base64-kodierte conf-Daten
+ * }
+ */
+function createConfigHandler({ deserialize, fieldMap, metadata, signatures }) {
+    return (req, res, next) => {
+        try {
+            const { uuid, version, conf: confB64 } = req.body;
 
+            if (typeof confB64 !== "string") {
+                return res.status(400).json({ error: "`conf` muss ein Base64-String sein." });
+            }
 
+            const encrypted = Buffer.from(confB64, "base64");
+            const { plain } = decryptConf(encrypted, version);
+            const signature = plain.readUInt32BE(0);
+
+            let conf;
+            if (signature === signatures.v1) {
+                conf = deserialize(plain);
+            } else {
+                return res.status(400).json({ error: `Unbekannte Signatur: ${signature}` });
+            }
+
+            const filtered = {};
+            for (const [origKey, { alias, meta }] of Object.entries(fieldMap)) {
+                if (conf.hasOwnProperty(origKey) && metadata[origKey]) {
+                    const entry = { value: conf[origKey] };
+                    for (const m of meta) {
+                        if (metadata[origKey][m] !== undefined) {
+                            entry[m] = metadata[origKey][m];
+                        }
+                    }
+                    filtered[alias] = entry;
+                }
+            }
+
+            //console.log(filtered);
+
+            res.json({ uuid, version, conf: filtered });
+        } catch (err) {
+            next(err);
+        }
+    };
+}
 
 module.exports = () => {
     const router = express.Router();
@@ -71,70 +155,11 @@ module.exports = () => {
     // Body-Parser konfigurieren
     router.use(express.json({ limit: "1mb" }));
 
-    /**
-     * POST /mc
-     * Body: {
-     *   uuid: string,
-     *   version: string,
-     *   conf: string  // Base64-kodierte mcconf-Daten
-     * }
-     */
-    router.post("/mc", (req, res, next) => {
 
-        try {
-            const { uuid, version, conf: confB64  } = req.body;
-
-            if (typeof confB64 !== "string") {
-                return res.status(400).json({ error: "`confB64` muss ein Base64-String sein." });
-            }
-
-            // 1) Base64 → Buffer
-            const encrypted = Buffer.from(confB64, "base64");
-
-            // 2) entschlüsseln
-            const { plain, salt } = decryptConf(encrypted, version);
-
-            // 3) Signatur aus plain lesen
-            const signature = plain.readUInt32BE(0);
-
-            // 4) Dispatcher
-            let conf;
-            if (signature === MCCONF_SIGNATURE_V1) {
-                conf = deserializeMcconf_V1(plain);
-            } else if (signature === MCCONF_SIGNATURE_V2) {
-                conf = deserializeMcconf_V2(plain);
-            } else {
-                return res
-                    .status(400)
-                    .json({ error: `Unbekannte Signatur: ${signature}` });
-            }
-
-            // 5) Mapping anwenden
-            const filtered = {};
-            for (const [origKey, { alias, meta }] of Object.entries(FIELD_MAP)) {
-                if (conf.hasOwnProperty(origKey) && METADATA[origKey]) {
-                    // Baue den Eintrag mit value + allen gewünschten Meta‑Felder
-                    const entry = { value: conf[origKey] };
-                    for (const m of meta) {
-                        if (METADATA[origKey][m] !== undefined) {
-                            entry[m] = METADATA[origKey][m];
-                        }
-                    }
-                    filtered[alias] = entry;
-                }
-            }
-            //console.log(filtered);
-
-            // 6) Antwort
-            res.json({
-                uuid,
-                version,
-                conf: filtered
-            });
-        } catch (err) {
-            next(err);
-        }
-    });
+    // Dynamisch Routen registrieren
+    for (const [path, config] of Object.entries(CONFIG_MAP)) {
+        router.post(`/${path}`, createConfigHandler(config));
+    }
 
     return router;
 };
