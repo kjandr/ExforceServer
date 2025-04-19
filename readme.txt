@@ -1,6 +1,7 @@
 npm init -y
 npm install express sqlite3 jsonwebtoken body-parser bcrypt
 npm install module-alias --save
+npm install --save-dev jest supertest
 
 VS Code Extensions
 Thunder Client

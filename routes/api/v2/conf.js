@@ -1,12 +1,19 @@
 const express = require("express");
 const { Buffer } = require('buffer');
+
 const { deserializeMcconf_V1 } = require("@utils/deserializeMcconf");
 const { deserializeEbikeconf_V1 } = require("@utils/deserializeEbikeconf");
 const { deserializeAppconf_V1 } = require("@utils/deserializeAppconf");
+
 const { METADATA_MC, FIELD_MAP_MC } = require("@utils/confMcFields");
 const { METADATA_EBIKE, FIELD_MAP_EBIKE } = require("@utils/confEbikeFields");
 const { METADATA_APP, FIELD_MAP_APP } = require("@utils/confAppFields");
-const { decipher } = require("@utils/crypto");
+
+const { serializeMcconf_V1 } = require("@utils/serializeMcconf");
+const { serializeEbikeconf_V1 } = require("@utils/serializeEbikeconf");
+const { serializeAppconf_V1 } = require("@utils/serializeAppconf");
+
+const { decrypt, encrypted } = require("@utils/crypto");
 
 const SIGNATURES = {
     mc: { v1: 2525666056 },
@@ -14,7 +21,7 @@ const SIGNATURES = {
     app: { v1: 3733512279 }
 };
 
-const CONFIG_MAP = {
+const GET_CONFIG_MAP = {
     mc: {
         deserialize: deserializeMcconf_V1,
         fieldMap: FIELD_MAP_MC,
@@ -35,6 +42,22 @@ const CONFIG_MAP = {
     }
 };
 
+// Konfigurationen für Setter-Routen
+const SET_CONFIG_MAP = {
+    mc: {
+        ...GET_CONFIG_MAP.mc,
+        serialize: serializeMcconf_V1
+    },
+    ebike: {
+        ...GET_CONFIG_MAP.ebike,
+        serialize: serializeEbikeconf_V1
+    },
+    app: {
+        ...GET_CONFIG_MAP.app,
+        serialize: serializeAppconf_V1
+    }
+};
+
 function versionLt(a, b) {
     const pa = a.split(".").map(Number);
     const pb = b.split(".").map(Number);
@@ -47,56 +70,80 @@ function versionLt(a, b) {
     return false;
 }
 
-/**
- * Entschlüsselt den gesamten Buffer analog zu deinem C++ decrypt():
- *  - liest das 4‑Byte-Salt am Ende-5..‑Byte
- *  - setzt key[1] = salt
- *  - läuft blockweise über Cipher-Blöcke (je 8 Byte) und ruft decipher(50,...)
- */
+function mergeConf(conf, newValues) {
+    for (const key of Object.keys(newValues)) {
+        if (
+            typeof newValues[key] === "object" &&
+            newValues[key] !== null &&
+            !Array.isArray(newValues[key]) &&
+            typeof conf[key] === "object" &&
+            conf[key] !== null &&
+            !Array.isArray(conf[key])
+        ) {
+            // Rekursives Mergen für verschachtelte Objekte
+            mergeConf(conf[key], newValues[key]);
+        } else {
+            // Einfacher Wert oder überschreiben
+            conf[key] = newValues[key];
+        }
+    }
+    return conf;
+}
+
+function decodeAndMapAliases(values, fieldMap) {
+    const aliasToKey = {};
+    for (const [originalKey, { alias }] of Object.entries(fieldMap)) {
+        aliasToKey[alias] = originalKey;
+    }
+
+    //const valuesStr = Buffer.from(valuesBase64, "base64").toString("utf8");
+    const parsed = JSON.parse(values);
+
+    return mapKeysDeep(parsed, aliasToKey);
+}
+
+function mapKeysDeep(obj, aliasMap) {
+    if (Array.isArray(obj)) {
+        return obj.map(item => mapKeysDeep(item, aliasMap));
+    }
+
+    if (obj !== null && typeof obj === "object") {
+        const result = {};
+        for (const [key, value] of Object.entries(obj)) {
+            const mappedKey = aliasMap[key] || key;
+            result[mappedKey] = mapKeysDeep(value, aliasMap);
+        }
+        return result;
+    }
+
+    // Primitive Wert (String, Zahl, Bool, null)
+    return obj;
+}
+
+function uuidToBytes(uuid) {
+    const cleaned = uuid.replace(/-/g, "");
+    const buf = Buffer.alloc(cleaned.length / 2);
+    for (let i = 0; i < cleaned.length; i += 2) {
+        buf[i / 2] = parseInt(cleaned.substring(i, i + 2), 16);
+    }
+    return buf;
+}
+
+
 function decryptConf(buffer, version) {
     // Pre-v2.5.5.3 noch unverschlüsselt zurückgeben
     if (versionLt(version, "2.5.5.3")) {
         return { plain: Buffer.from(buffer), salt: null };
     }
-    const len = buffer.length;
-    const plain = Buffer.from(buffer); // Kopie, um input nicht zu mutieren
+    return decrypt(buffer);
+}
 
-    // Standard-Key
-    const key = [
-        0x6b1124ff >>> 0,
-        0x5b35ace3 >>> 0,
-        0xa05326a8 >>> 0,
-        0x3421bacb >>> 0
-    ];
-
-    // Salt liegt bei offset = len-1-4
-    const saltOffset = len - 1 - 4;
-    const salt = plain.readUInt32BE(saltOffset) >>> 0;
-    key[1] = salt;
-
-    // Anzahl 8‑Byte-Blöcke: floor((len-1-4) / 8)
-    const blockCount = Math.floor((len - 1 - 4) / 8);
-    let inOff = 0;
-    let outOff = 0;
-
-    for (let i = 0; i < blockCount; i++) {
-        // Lese v0/v1 aus plain
-        const v0 = plain.readUInt32BE(inOff) >>> 0;
-        const v1 = plain.readUInt32BE(inOff + 4) >>> 0;
-        const v = [v0, v1];
-
-        // entschlüsseln
-        decipher(50, v, key);
-
-        // schreibe entschlüsselte Werte zurück
-        plain.writeUInt32BE(v[0], outOff);
-        plain.writeUInt32BE(v[1], outOff + 4);
-
-        inOff  += 8;
-        outOff += 8;
+function encryptedConf(buffer, salt, version) {
+    // Pre-v2.5.5.3 noch unverschlüsselt zurückgeben
+    if (versionLt(version, "2.5.5.3")) {
+        return { encrypted: buffer, salt: null };
     }
-
-    return { plain, salt };
+    return encrypted(buffer, salt);
 }
 
 /**
@@ -107,7 +154,7 @@ function decryptConf(buffer, version) {
  *   conf: string  // Base64-kodierte conf-Daten
  * }
  */
-function createConfigHandler({ deserialize, fieldMap, metadata, signatures }) {
+function createGetConfigHandler({ deserialize, fieldMap, metadata, signatures }) {
     return (req, res, next) => {
         try {
             const { uuid, version, conf: confB64 } = req.body;
@@ -149,6 +196,66 @@ function createConfigHandler({ deserialize, fieldMap, metadata, signatures }) {
     };
 }
 
+/**
+ * PUT /:configType
+ * Body: {
+ *   uuid: string,
+ *   version: string,
+ *   conf: object  // Konfigurationsobjekt ohne Metadaten
+ * }
+ */
+function createSetConfigHandler({ deserialize, serialize, fieldMap, signatures }) {
+    return (req, res, next) => {
+        try {
+            const { uuid, version, conf: confB64, values } = req.body;
+
+            if (typeof confB64 !== "string") {
+                return res.status(400).json({ error: "`conf` muss ein Base64-String sein." });
+            }
+
+            const encryptedInput = Buffer.from(confB64, "base64");
+            const { plain, salt } = decryptConf(encryptedInput, version);
+            const signature = plain.readUInt32BE(0);
+
+            const newValues = decodeAndMapAliases(values, fieldMap);
+
+            let conf;
+            if (signature === signatures.v1) {
+                conf = deserialize(plain);
+            } else {
+                return res.status(400).json({ error: `Unbekannte Signatur: ${signature}` });
+            }
+
+            mergeConf(conf, newValues);
+
+            // Konfiguration wieder serialisieren
+            const serialized = serialize(conf, signature);
+
+            const uuidBytes = uuidToBytes(uuid);
+
+            // UUID-Bytes an serialisierte Konfiguration anhängen
+            const finalBuffer = Buffer.concat([serialized, uuidBytes]);
+
+            // Verschlüsselung durchführen und Base64
+            const { encrypted } = encryptedConf(finalBuffer, salt, version);
+            const resultConfB64 = encrypted.toString('base64');
+
+            // Hier würde man die Konfiguration speichern/aktualisieren
+            // z.B. in einer Datenbank
+
+            res.json({
+                uuid,
+                version,
+                conf: resultConfB64,
+                status: "success",
+                message: "Konfiguration erfolgreich gespeichert"
+            });
+        } catch (err) {
+            next(err);
+        }
+    };
+}
+
 module.exports = () => {
     const router = express.Router();
 
@@ -156,9 +263,14 @@ module.exports = () => {
     router.use(express.json({ limit: "1mb" }));
 
 
-    // Dynamisch Routen registrieren
-    for (const [path, config] of Object.entries(CONFIG_MAP)) {
-        router.post(`/${path}`, createConfigHandler(config));
+    // Dynamisch Getter-Routen registrieren
+    for (const [path, get_config] of Object.entries(GET_CONFIG_MAP)) {
+        router.post(`/${path}`, createGetConfigHandler(get_config));
+    }
+
+    // Dynamisch Setter-Routen registrieren
+    for (const [path, set_config] of Object.entries(SET_CONFIG_MAP)) {
+        router.put(`/${path}`, createSetConfigHandler(set_config));
     }
 
     return router;
