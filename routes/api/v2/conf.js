@@ -1,19 +1,21 @@
 const express = require("express");
 const { Buffer } = require('buffer');
 
-const { deserializeMcconf_V1 } = require("@utils/deserializeMcconf");
-const { deserializeEbikeconf_V1 } = require("@utils/deserializeEbikeconf");
-const { deserializeAppconf_V1 } = require("@utils/deserializeAppconf");
+const { deserializeMcconf_V1 } = require("./conf_utils/deserializeMcconf");
+const { deserializeEbikeconf_V1 } = require("./conf_utils/deserializeEbikeconf");
+const { deserializeAppconf_V1 } = require("./conf_utils/deserializeAppconf");
 
-const { METADATA_MC, FIELD_MAP_MC } = require("@utils/confMcFields");
-const { METADATA_EBIKE, FIELD_MAP_EBIKE } = require("@utils/confEbikeFields");
-const { METADATA_APP, FIELD_MAP_APP } = require("@utils/confAppFields");
+const { serializeMcconf_V1 } = require("./conf_utils/serializeMcconf");
+const { serializeEbikeconf_V1 } = require("./conf_utils/serializeEbikeconf");
+const { serializeAppconf_V1 } = require("./conf_utils/serializeAppconf");
 
-const { serializeMcconf_V1 } = require("@utils/serializeMcconf");
-const { serializeEbikeconf_V1 } = require("@utils/serializeEbikeconf");
-const { serializeAppconf_V1 } = require("@utils/serializeAppconf");
+const { decrypt, encrypted } = require("./conf_utils/crypto");
+const { versionLt, mergeConf, decodeAndMapAliases, uuidToBytes } = require("./conf_utils/helper");
 
-const { decrypt, encrypted } = require("@utils/crypto");
+const { METADATA_MC, FIELD_MAP_MC } = require("./conf_data/confMcFields");
+const { METADATA_EBIKE, FIELD_MAP_EBIKE } = require("./conf_data/confEbikeFields");
+const { METADATA_APP, FIELD_MAP_APP } = require("./conf_data/confAppFields");
+
 
 const SIGNATURES = {
     mc: { v1: 2525666056 },
@@ -58,78 +60,6 @@ const SET_CONFIG_MAP = {
     }
 };
 
-function versionLt(a, b) {
-    const pa = a.split(".").map(Number);
-    const pb = b.split(".").map(Number);
-    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-        const na = pa[i] || 0;
-        const nb = pb[i] || 0;
-        if (na < nb) return true;
-        if (na > nb) return false;
-    }
-    return false;
-}
-
-function mergeConf(conf, newValues) {
-    for (const key of Object.keys(newValues)) {
-        if (
-            typeof newValues[key] === "object" &&
-            newValues[key] !== null &&
-            !Array.isArray(newValues[key]) &&
-            typeof conf[key] === "object" &&
-            conf[key] !== null &&
-            !Array.isArray(conf[key])
-        ) {
-            // Rekursives Mergen für verschachtelte Objekte
-            mergeConf(conf[key], newValues[key]);
-        } else {
-            // Einfacher Wert oder überschreiben
-            conf[key] = newValues[key];
-        }
-    }
-    return conf;
-}
-
-function decodeAndMapAliases(values, fieldMap) {
-    const aliasToKey = {};
-    for (const [originalKey, { alias }] of Object.entries(fieldMap)) {
-        aliasToKey[alias] = originalKey;
-    }
-
-    //const valuesStr = Buffer.from(valuesBase64, "base64").toString("utf8");
-    const parsed = JSON.parse(values);
-
-    return mapKeysDeep(parsed, aliasToKey);
-}
-
-function mapKeysDeep(obj, aliasMap) {
-    if (Array.isArray(obj)) {
-        return obj.map(item => mapKeysDeep(item, aliasMap));
-    }
-
-    if (obj !== null && typeof obj === "object") {
-        const result = {};
-        for (const [key, value] of Object.entries(obj)) {
-            const mappedKey = aliasMap[key] || key;
-            result[mappedKey] = mapKeysDeep(value, aliasMap);
-        }
-        return result;
-    }
-
-    // Primitive Wert (String, Zahl, Bool, null)
-    return obj;
-}
-
-function uuidToBytes(uuid) {
-    const cleaned = uuid.replace(/-/g, "");
-    const buf = Buffer.alloc(cleaned.length / 2);
-    for (let i = 0; i < cleaned.length; i += 2) {
-        buf[i / 2] = parseInt(cleaned.substring(i, i + 2), 16);
-    }
-    return buf;
-}
-
-
 function decryptConf(buffer, version) {
     // Pre-v2.5.5.3 noch unverschlüsselt zurückgeben
     if (versionLt(version, "2.5.5.3")) {
@@ -147,78 +77,115 @@ function encryptedConf(buffer, salt, version) {
 }
 
 /**
- * POST /..
- * Body: {
- *   uuid: string,
- *   version: string,
- *   conf: string  // Base64-kodierte conf-Daten
- * }
+ * Erzeugt einen HTTP-Handler für POST-Anfragen zum Abrufen von Konfigurationen
+ *
+ * @param {Object} options
+ * @param {Function} options.deserialize - Funktion zum Deserialisieren von Konfigurationen
+ * @param {Object} options.fieldMap - Zuordnungstabelle zwischen internen Keys und Frontend-Aliassen
+ * @param {Object} options.metadata - Metadaten für Konfigurationsfelder
+ * @param {Object} options.signatures - Unterstützte Signaturcodes
+ * @returns {Function} Express-Middleware zum Verarbeiten der Anfrage
  */
 function createGetConfigHandler({ deserialize, fieldMap, metadata, signatures }) {
     return (req, res, next) => {
         try {
+            // Extrahieren der Anfrageparameter
             const { uuid, version, conf: confB64 } = req.body;
 
+            // Überprüfen, ob conf ein gültiger Base64-String ist
             if (typeof confB64 !== "string") {
                 return res.status(400).json({ error: "`conf` muss ein Base64-String sein." });
             }
 
+            // Base64-decodieren des verschlüsselten Konfigurations-Strings
             const encrypted = Buffer.from(confB64, "base64");
+
+            // Entschlüsseln der Konfigurationsdaten
+            // decryptConf gibt ein Objekt mit dem entschlüsselten Buffer zurück
             const { plain } = decryptConf(encrypted, version);
+
+            // Lesen der Signatur aus den ersten 4 Bytes
+            // Die Signatur identifiziert das Konfigurationsformat
             const signature = plain.readUInt32BE(0);
 
+            // Deserialisieren der Konfiguration basierend auf der Signatur
             let conf;
             if (signature === signatures.v1) {
+                // V1-Format deserialisieren
                 conf = deserialize(plain);
             } else {
+                // Bei unbekannter Signatur Fehler zurückgeben
                 return res.status(400).json({ error: `Unbekannte Signatur: ${signature}` });
             }
 
+            // Erstellen eines gefilterten Konfigurationsobjekts für die Frontend-Anzeige
+            // Mit Metadaten anreichern und interne Keys in Frontend-Aliasse umwandeln
             const filtered = {};
             for (const [origKey, { alias, meta }] of Object.entries(fieldMap)) {
+                // Nur vorhandene Felder mit definierten Metadaten einbeziehen
                 if (conf.hasOwnProperty(origKey) && metadata[origKey]) {
+                    // Erstellen eines Eintrags mit dem Wert aus der Konfiguration
                     const entry = { value: conf[origKey] };
+                    // Hinzufügen der angeforderten Metadaten
                     for (const m of meta) {
                         if (metadata[origKey][m] !== undefined) {
                             entry[m] = metadata[origKey][m];
                         }
                     }
+                    // Speichern unter dem Frontend-Alias
                     filtered[alias] = entry;
                 }
             }
 
             //console.log(filtered);
 
+            // Antwort mit UUID, Version und der aufbereiteten Konfiguration
             res.json({ uuid, version, conf: filtered });
         } catch (err) {
+            // Fehlerbehandlung an den nächsten Error-Handler übergeben
             next(err);
         }
     };
 }
 
 /**
- * PUT /:configType
- * Body: {
- *   uuid: string,
- *   version: string,
- *   conf: object  // Konfigurationsobjekt ohne Metadaten
- * }
+ * Erzeugt einen HTTP-Handler für PUT-Anfragen zum Aktualisieren von Konfigurationen.
+ *
+ * Der Handler:
+ * 1. Empfängt verschlüsselte Konfigurationsdaten als Base64-String
+ * 2. Entschlüsselt und deserialisiert die Daten
+ * 3. Fusioniert sie mit den neuen Werten
+ * 4. Serialisiert, verschlüsselt und sendet das Ergebnis zurück
+ *
+ * @param {Object} options - Handler-Konfiguration
+ * @param {Function} options.deserialize - Funktion zum Deserialisieren der Konfiguration
+ * @param {Function} options.serialize - Funktion zum Serialisieren der Konfiguration
+ * @param {Object} options.fieldMap - Zuordnung zwischen Original-Keys und Frontend-Aliassen
+ * @param {Object} options.signatures - Unterstützte Signaturversionen für die Konfiguration
+ * @returns {Function} Express-Handler-Funktion für PUT-Anfragen
  */
 function createSetConfigHandler({ deserialize, serialize, fieldMap, signatures }) {
     return (req, res, next) => {
         try {
+            // Extrahiere Anfragedaten
             const { uuid, version, conf: confB64, values } = req.body;
 
+            // Validiere den Base64-String
             if (typeof confB64 !== "string") {
                 return res.status(400).json({ error: "`conf` muss ein Base64-String sein." });
             }
 
+            // Konvertiere Base64 in Binärdaten und entschlüssele
             const encryptedInput = Buffer.from(confB64, "base64");
             const { plain, salt } = decryptConf(encryptedInput, version);
+
+            // Überprüfe die Signatur am Anfang der Konfiguration
             const signature = plain.readUInt32BE(0);
 
+            // Dekodiere und mappe die Frontend-Werte zu internen Schlüsseln
             const newValues = decodeAndMapAliases(values, fieldMap);
 
+            // Deserialisiere die Konfiguration basierend auf der erkannten Signatur
             let conf;
             if (signature === signatures.v1) {
                 conf = deserialize(plain);
@@ -226,23 +193,26 @@ function createSetConfigHandler({ deserialize, serialize, fieldMap, signatures }
                 return res.status(400).json({ error: `Unbekannte Signatur: ${signature}` });
             }
 
+            // Aktualisiere die Konfiguration mit den neuen Werten
             mergeConf(conf, newValues);
 
-            // Konfiguration wieder serialisieren
+            // Serialisiere die aktualisierte Konfiguration mit der ursprünglichen Signatur
             const serialized = serialize(conf, signature);
 
+            // Konvertiere die UUID in ein Byte-Array
             const uuidBytes = uuidToBytes(uuid);
 
-            // UUID-Bytes an serialisierte Konfiguration anhängen
+            // Füge die UUID-Bytes an die serialisierte Konfiguration an (wichtig für die Server-Authentifizierung)
             const finalBuffer = Buffer.concat([serialized, uuidBytes]);
 
-            // Verschlüsselung durchführen und Base64
+            // Verschlüssele die Daten mit dem ursprünglichen Salt und konvertiere zu Base64
             const { encrypted } = encryptedConf(finalBuffer, salt, version);
             const resultConfB64 = encrypted.toString('base64');
 
             // Hier würde man die Konfiguration speichern/aktualisieren
             // z.B. in einer Datenbank
 
+            // Erfolgreiche Antwort mit der aktualisierten Konfiguration
             res.json({
                 uuid,
                 version,
@@ -251,6 +221,7 @@ function createSetConfigHandler({ deserialize, serialize, fieldMap, signatures }
                 message: "Konfiguration erfolgreich gespeichert"
             });
         } catch (err) {
+            // Fehlerbehandlung an den nächsten Error-Handler weiterleiten
             next(err);
         }
     };
