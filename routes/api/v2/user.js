@@ -75,6 +75,17 @@ module.exports = () => {
         });
     });
 
+    router.post("/logout", (req, res) => {
+        const { email } = req.body;
+        const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+
+        if (!email) {
+            return res.status(400).json({ message: "E-Mail, CPU-ID erforderlich" });
+        }
+
+        res.json({ message: "Logout" });
+    });
+
     // ✅ Passwort Reset anfordern
     router.post("/request-password-reset", (req, res) => {
         const { email } = req.body;

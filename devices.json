@@ -69,7 +69,7 @@
         "current_ki": 24.0,
         "current_kp": 0.1,
         "freq_foc_khz": 30.0,
-        "flux_linkage_mwb": 7.6,
+        "flux_linkage_mwb": 7.5,
         "inductance_uh": 70.0,
         "resistance_mr": 22.0,
         "observer_gain": 15.9,

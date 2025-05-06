@@ -14,6 +14,9 @@ function serializeEbikeconf_V1(conf, signature) {
     // Signature
     writeUInt32(signature);
 
+    writeByteArray(conf.controllerSerial, 16);
+    writeByteArray(conf.motorSerial, 16);
+
     // Arrays mit 11 Elementen
     writeByteArray(conf.torqueFactor, 11);
     writeByteArray(conf.trottleFactor, 11);
@@ -57,7 +60,7 @@ function serializeEbikeconf_V1(conf, signature) {
     writeByteArray(conf.senseCadence2, 11);
 
     // padel_length
-    writeByte(conf.padel_length);
+    writeByte(conf.crank_length);
 
     // Alle Teile zu einem Buffer zusammenfügen
     return Buffer.concat(parts);

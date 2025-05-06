@@ -28,6 +28,9 @@ function deserializeEbikeconf_V1(buffer) {
     const conf = {};
     conf.signature = readUInt32();
 
+    conf.controllerSerial = readArray(16);
+    conf.motorSerial      = readArray(16);
+
     conf.torqueFactor     = readArray(11);
     conf.trottleFactor    = readArray(11);
     conf.senseTorque      = readArray(11);
@@ -56,7 +59,7 @@ function deserializeEbikeconf_V1(buffer) {
     conf.senseCadence  = readArray(11);
     conf.senseCadence2 = readArray(11);
 
-    conf.padel_length = payload[offset++];
+    conf.crank_length = payload[offset++];
     return conf;
 }
 

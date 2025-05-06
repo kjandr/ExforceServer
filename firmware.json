@@ -1,7 +1,7 @@
 {
   "controller": {
     "EX8_560": {
-      "version": "4.0.0.9",
+      "version": "4.0.0.8",
       "url": "http://localhost:50837/update/ex8-560-4.0.0.9.bin",
       "checksum": "111aaa222bbb333ccc",
       "beta": {
