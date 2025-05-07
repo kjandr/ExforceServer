@@ -1,7 +1,7 @@
 // 1) Definiere hier in einem Objekt alle statischen Metadaten je Feld:
 const METADATA_EBIKE = {
-    motorSerial:         { type: "array", size: 16 },
-    controllerSerial:    { type: "array", size: 16 },
+    motorSerial:         { type: "string" },
+    controllerSerial:    { type: "string" },
 
     torqueFactor:        { type: "array", size: 11, scale: 1, suffix: "%", min: 0, max: 100, decimals: 0 },
     trottleFactor:       { type: "array", size: 11,  scale: 1, suffix: "%", min: 0, max: 100, decimals: 0 },
@@ -36,8 +36,8 @@ const METADATA_EBIKE = {
 
 // 2) Und hier das Mapping: Original‑Key → Alias‑Name + welche Meta‑Properties mitkommen
 const FIELD_MAP_EBIKE = {
-    motorSerial:        { alias:"motorSerial",      meta:["type","size"] },
-    controllerSerial:   { alias:"controllerSerial", meta:["type","size"] },
+    motorSerial:        { alias:"motorSerial",      meta:["type"] },
+    controllerSerial:   { alias:"controllerSerial", meta:["type"] },
 
     torqueFactor:       { alias:"torqueFactor",     meta:["type","size","scale","suffix","min","max","decimals"] },
     trottleFactor:      { alias:"trottleFactor",    meta:["type","size","scale","suffix","min","max","decimals"] },

@@ -236,7 +236,7 @@ function createSetConfigHandler({ deserialize, serialize, fieldMap, signatures }
     return (req, res, next) => {
         try {
             // Extrahiere Anfragedaten
-            const { uuid, version, conf: confB64, values, motorSerial = null, controllerSerial = null } = req.body;
+            const { uuid, version, conf: confB64, values } = req.body;
 
             // Validiere den Base64-String
             if (typeof confB64 !== "string") {
@@ -264,11 +264,17 @@ function createSetConfigHandler({ deserialize, serialize, fieldMap, signatures }
             // Aktualisiere die Konfiguration mit den neuen Werten
             mergeConf(conf, newValues);
 
-            // Prüfen ob motorSerial und serialController vorhanden sind und aktiviere den Controller.
-            if (motorSerial !== null && motorSerial !== undefined &&
-                controllerSerial !== null && controllerSerial !== undefined) {
-                conf = controllerAktivation(conf, motorSerial, controllerSerial);
+            // Prüfen ob motorSerial und controllerSerial vorhanden sind und aktiviere den Controller.
+            if (conf.motorSerial !== null && conf.motorSerial !== undefined &&
+            conf.controllerSerial !== null && conf.controllerSerial !== undefined) {
+                conf = controllerAktivation(conf, conf.motorSerial, conf.controllerSerial);
+                console.log(conf.motorSerial, conf.controllerSerial);
             }
+
+            //if (motorSerial !== null && motorSerial !== undefined &&
+            //    controllerSerial !== null && controllerSerial !== undefined) {
+            //    conf = controllerAktivation(conf, motorSerial, controllerSerial);
+            //}
 
             // Serialisiere die aktualisierte Konfiguration mit der ursprünglichen Signatur
             const serialized = serialize(conf, signature);
