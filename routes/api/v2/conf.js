@@ -19,7 +19,7 @@ const { METADATA_APP, FIELD_MAP_APP } = require("./conf_data/confAppFields");
 
 const SIGNATURES = {
     mc: { v1: 2525666056 },
-    ebike: { v1: 1111649770 },
+    ebike: { v1: 1315649970 },
     app: { v1: 3733512279 }
 };
 
@@ -76,31 +76,6 @@ function encryptedConf(buffer, salt, version) {
     return encrypted(buffer, salt);
 }
 
-function prepareEbikeConfForJson(conf) {
-    if ('maxWatt' in conf) {  // Prüfen ob es eine Ebike-Konfiguration ist
-        // Erstelle eine Kopie der Konfiguration
-        const jsonConf = { ...conf };
-
-        // Konvertiere motorSerial von Array zu String
-        if (Array.isArray(jsonConf.motorSerial)) {
-            jsonConf.motorSerial = jsonConf.motorSerial
-                .filter(byte => byte !== 0)  // Entferne Null-Bytes
-                .map(byte => String.fromCharCode(byte))  // Konvertiere zu Zeichen
-                .join('');  // Verbinde zu einem String
-        }
-
-        // Konvertiere controllerSerial von Array zu String
-        if (Array.isArray(jsonConf.controllerSerial)) {
-            jsonConf.controllerSerial = jsonConf.controllerSerial
-                .filter(byte => byte !== 0)  // Entferne Null-Bytes
-                .map(byte => String.fromCharCode(byte))  // Konvertiere zu Zeichen
-                .join('');  // Verbinde zu einem String
-        }
-        return jsonConf;
-    }
-    return conf;  // Wenn keine Ebike-Konfiguration, gib original zurück
-}
-
 function controllerAktivation(conf, motorSerial, controllerSerial) {
     // Prüfe ob es sich um eine Ebike- oder MC-Konfiguration handelt
     if ('maxWatt' in conf) {
@@ -108,23 +83,6 @@ function controllerAktivation(conf, motorSerial, controllerSerial) {
         conf.maxWatt = 750;
         conf.batteryCurrent = 25;
         conf.motorCurrent = 25;
-
-        // Seriennummern als Arrays mit fester Länge (16) speichern
-        conf.motorSerial = new Array(16).fill(0);
-        conf.controllerSerial = new Array(16).fill(0);
-
-        // Konvertiere die Seriennummern in Arrays und kopiere sie
-        const motorSerialArray = Array.from(motorSerial);
-        const controllerSerialArray = Array.from(controllerSerial);
-
-        // Kopiere die Werte in die Arrays (maximal 16 Zeichen)
-        for (let i = 0; i < Math.min(motorSerialArray.length, 16); i++) {
-            conf.motorSerial[i] = motorSerialArray[i].charCodeAt(0);
-        }
-
-        for (let i = 0; i < Math.min(controllerSerialArray.length, 16); i++) {
-            conf.controllerSerial[i] = controllerSerialArray[i].charCodeAt(0);
-        }
 
     } else if ('l_watt_max' in conf) {
         // MC-Konfiguration
@@ -175,7 +133,6 @@ function createGetConfigHandler({ deserialize, fieldMap, metadata, signatures })
             if (signature === signatures.v1) {
                 // V1-Format deserialisieren
                 conf = deserialize(plain);
-                conf = prepareEbikeConfForJson(conf);
             } else {
                 // Bei unbekannter Signatur Fehler zurückgeben
                 return res.status(400).json({ error: `Unbekannte Signatur: ${signature}` });
@@ -263,18 +220,6 @@ function createSetConfigHandler({ deserialize, serialize, fieldMap, signatures }
 
             // Aktualisiere die Konfiguration mit den neuen Werten
             mergeConf(conf, newValues);
-
-            // Prüfen ob motorSerial und controllerSerial vorhanden sind und aktiviere den Controller.
-            if (conf.motorSerial !== null && conf.motorSerial !== undefined &&
-            conf.controllerSerial !== null && conf.controllerSerial !== undefined) {
-                conf = controllerAktivation(conf, conf.motorSerial, conf.controllerSerial);
-                console.log(conf.motorSerial, conf.controllerSerial);
-            }
-
-            //if (motorSerial !== null && motorSerial !== undefined &&
-            //    controllerSerial !== null && controllerSerial !== undefined) {
-            //    conf = controllerAktivation(conf, motorSerial, controllerSerial);
-            //}
 
             // Serialisiere die aktualisierte Konfiguration mit der ursprünglichen Signatur
             const serialized = serialize(conf, signature);

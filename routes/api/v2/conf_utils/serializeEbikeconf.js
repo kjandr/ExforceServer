@@ -11,11 +11,22 @@ function serializeEbikeconf_V1(conf, signature) {
         arr.forEach(v => writeByte(v));
     };
 
+    const convertStringToArray = (str, length = 16) => {
+        const arr = new Array(length).fill(0);  // Initialisiere mit Nullen
+        if (typeof str === 'string') {
+            const bytes = str.split('').map(char => char.charCodeAt(0));
+            bytes.forEach((byte, i) => {
+                if (i < length) arr[i] = byte;
+            });
+        }
+        return arr;
+    }
+
     // Signature
     writeUInt32(signature);
 
-    writeByteArray(conf.controllerSerial, 16);
-    writeByteArray(conf.motorSerial, 16);
+    writeByteArray(convertStringToArray(conf.controllerSerial, 16), 16);
+    writeByteArray(convertStringToArray(conf.motorSerial, 16), 16);
 
     // Arrays mit 11 Elementen
     writeByteArray(conf.torqueFactor, 11);

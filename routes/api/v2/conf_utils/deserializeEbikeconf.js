@@ -25,11 +25,22 @@ function deserializeEbikeconf_V1(buffer) {
         return arr;
     };
 
+    // Konvertiert Byte-Array zu String
+    const convertArrayToString = (byteArray) => {
+        if (Array.isArray(byteArray)) {
+            return byteArray
+                .filter(byte => byte !== 0)  // Entferne Null-Bytes
+                .map(byte => String.fromCharCode(byte))  // Konvertiere zu Zeichen
+                .join('');  // Verbinde zu einem String
+        }
+        return "";
+    }
+
     const conf = {};
     conf.signature = readUInt32();
 
-    conf.controllerSerial = readArray(16);
-    conf.motorSerial      = readArray(16);
+    conf.controllerSerial = convertArrayToString(readArray(16));
+    conf.motorSerial      = convertArrayToString(readArray(16));
 
     conf.torqueFactor     = readArray(11);
     conf.trottleFactor    = readArray(11);
