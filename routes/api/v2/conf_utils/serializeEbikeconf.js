@@ -1,3 +1,5 @@
+const {METADATA_EBIKE} = require("../conf_data/confEbikeFields");
+
 function serializeEbikeconf_V1(conf, signature) {
     const parts = [];
 
@@ -20,6 +22,19 @@ function serializeEbikeconf_V1(conf, signature) {
             });
         }
         return arr;
+    }
+
+    const convertEnumToIndex = (value, enumArray) => {
+        // Wenn value bereits eine Zahl ist, direkt zurückgeben
+        if (typeof value === 'number') {
+            return value;
+        }
+
+        // Suche den Index des Wertes im Enum-Array
+        const index = enumArray.indexOf(String(value));
+
+        // Wenn nicht gefunden (-1), gib 0 als Standardwert zurück
+        return index >= 0 ? index : 0;
     }
 
     // Signature
@@ -54,7 +69,7 @@ function serializeEbikeconf_V1(conf, signature) {
     writeByte(conf.motorCurrent);
 
     // display_parameter
-    writeByte(conf.display_parameter);
+    writeByte(conf.display_parameter ? 1 : 0);
 
     // maxAssistSteps
     writeByte(conf.maxAssistSteps);
@@ -64,7 +79,7 @@ function serializeEbikeconf_V1(conf, signature) {
     writeByteArray(conf.maxMotorCurrent2, 11);
 
     // wattPadelecMode
-    writeByte(conf.wattPadelecMode);
+    writeByte(convertEnumToIndex(conf.wattPadelecMode, METADATA_EBIKE.wattPadelecMode.enums));
 
     // senseCadence und senseCadence2 Arrays
     writeByteArray(conf.senseCadence, 11);

@@ -1,3 +1,5 @@
+const {METADATA_MC} = require("../conf_data/confMcFields");
+
 function serializeMcconf_V1(conf, signature) {
     const parts = [];
 
@@ -17,6 +19,19 @@ function serializeMcconf_V1(conf, signature) {
         const b = Buffer.allocUnsafe(4);
         b.writeFloatBE(n, 0);
         parts.push(b);
+    }
+
+    const convertEnumToIndex = (value, enumArray) => {
+        // Wenn value bereits eine Zahl ist, direkt zurückgeben
+        if (typeof value === 'number') {
+            return value;
+        }
+
+        // Suche den Index des Wertes im Enum-Array
+        const index = enumArray.indexOf(String(value));
+
+        // Wenn nicht gefunden (-1), gib 0 als Standardwert zurück
+        return index >= 0 ? index : 0;
     }
 
     // 1) signature
@@ -310,7 +325,7 @@ function serializeMcconf_V1(conf, signature) {
 
     // 146–147) uint8
     writeUInt8(conf.m_out_aux_mode);
-    writeUInt8(conf.m_motor_temp_sens_type);
+    writeUInt8(convertEnumToIndex(conf.m_motor_temp_sens_type, METADATA_MC.m_motor_temp_sens_type.enums));
 
     // 148) float32_auto
     writeFloat32Auto(parts, conf.m_ptc_motor_coeff);
@@ -325,7 +340,8 @@ function serializeMcconf_V1(conf, signature) {
 
     // 153–154) uint8
     writeUInt8(conf.si_battery_type);
-    writeUInt8(conf.si_battery_cells);
+    // wegen einschrengenden enum-Werte + 10
+    writeUInt8(convertEnumToIndex(conf.si_battery_cells, METADATA_MC.si_battery_cells.enums) + 10);
 
     // 155–156) float32_auto
     writeFloat32Auto(parts, conf.si_battery_ah);

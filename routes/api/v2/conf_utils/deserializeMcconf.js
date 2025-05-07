@@ -1,5 +1,6 @@
+const { METADATA_MC } = require("../conf_data/confMcFields");
+
 function deserializeMcconf_V1(buffer) {
-    // Entferne VESC-Rahmen: Annahme, dass die ersten 2 und letzten 3 Bytes Rahmen sind
     const payload = buffer; //.slice(2, -3);
     let offset = 0;
 
@@ -59,6 +60,16 @@ function deserializeMcconf_V1(buffer) {
 
         // ldexpf(sig, e) ≈ sig * 2^e
         return sig * Math.pow(2, e);
+    }
+
+    const convertIndexToEnum = (index, enumArray) => {
+        // Prüfe ob der Index gültig ist
+        if (typeof index === 'number' && index >= 0 && index < enumArray.length) {
+            return enumArray[index];
+        }
+
+        // Falls der Index ungültig ist, gib den ersten Wert zurück
+        return enumArray[0];
     }
 
     const conf = {};
@@ -365,7 +376,7 @@ function deserializeMcconf_V1(buffer) {
 
     // 146–147. uint8_t
     conf.m_out_aux_mode = readUInt8();
-    conf.m_motor_temp_sens_type = readUInt8();
+    conf.m_motor_temp_sens_type = convertIndexToEnum(readUInt8(), METADATA_MC.m_motor_temp_sens_type.enums);
 
     // 148. float32_auto
     conf.m_ptc_motor_coeff = readFloat32Auto();
@@ -380,7 +391,8 @@ function deserializeMcconf_V1(buffer) {
 
     // 153–154. uint8_t
     conf.si_battery_type = readUInt8();
-    conf.si_battery_cells = readUInt8();
+    // wegen einschrengenden enum-Werte - 10
+    conf.si_battery_cells = convertIndexToEnum(readUInt8() - 10, METADATA_MC.si_battery_cells.enums);
 
     // 155–156. float32_auto
     conf.si_battery_ah = readFloat32Auto();

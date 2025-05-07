@@ -221,6 +221,12 @@ function createSetConfigHandler({ deserialize, serialize, fieldMap, signatures }
             // Aktualisiere die Konfiguration mit den neuen Werten
             mergeConf(conf, newValues);
 
+            // Prüfen ob motorSerial und serialController vorhanden sind und aktiviere den Controller.
+            if (conf.motorSerial !== null && conf.motorSerial !== undefined &&
+                conf.controllerSerial !== null && conf.controllerSerial !== undefined) {
+                conf = controllerAktivation(conf, conf.motorSerial, conf.controllerSerial);
+            }
+
             // Serialisiere die aktualisierte Konfiguration mit der ursprünglichen Signatur
             const serialized = serialize(conf, signature);
 

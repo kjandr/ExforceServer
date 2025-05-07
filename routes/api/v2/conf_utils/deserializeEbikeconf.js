@@ -1,3 +1,5 @@
+const {METADATA_EBIKE} = require("../conf_data/confEbikeFields");
+
 function deserializeEbikeconf_V1(buffer) {
     const payload = buffer;
     let offset = 0;
@@ -36,6 +38,16 @@ function deserializeEbikeconf_V1(buffer) {
         return "";
     }
 
+    const convertIndexToEnum = (index, enumArray) => {
+        // Prüfe ob der Index gültig ist
+        if (typeof index === 'number' && index >= 0 && index < enumArray.length) {
+            return enumArray[index];
+        }
+
+        // Falls der Index ungültig ist, gib den ersten Wert zurück
+        return enumArray[0];
+    }
+
     const conf = {};
     conf.signature = readUInt32();
 
@@ -59,13 +71,13 @@ function deserializeEbikeconf_V1(buffer) {
     conf.wheelSize      = readUInt16();
     conf.motorCurrent   = payload[offset++];
 
-    conf.display_parameter = payload[offset++];
+    conf.display_parameter = !!payload[offset++];
     conf.maxAssistSteps    = payload[offset++];
 
     conf.maxMotorCurrent  = readArray(11);
     conf.maxMotorCurrent2 = readArray(11);
 
-    conf.wattPadelecMode = payload[offset++];
+    conf.wattPadelecMode = convertIndexToEnum(payload[offset++], METADATA_EBIKE.wattPadelecMode.enums);
 
     conf.senseCadence  = readArray(11);
     conf.senseCadence2 = readArray(11);
