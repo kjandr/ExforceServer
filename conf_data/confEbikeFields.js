@@ -1,7 +1,7 @@
 // 1) Definiere hier in einem Objekt alle statischen Metadaten je Feld:
 const METADATA_EBIKE = {
-    motorSerial:         { type: "string" },
     controllerSerial:    { type: "string" },
+    motorSerial:         { type: "string" },
 
     torqueFactor:        { type: "array", size: 11, scale: 1, suffix: "%", min: 0, max: 100, decimals: 0 },
     trottleFactor:       { type: "array", size: 11,  scale: 1, suffix: "%", min: 0, max: 100, decimals: 0 },
@@ -20,7 +20,7 @@ const METADATA_EBIKE = {
     wheelSize:           { type: "int", scale: 1, suffix: "mm", min: 300, max: 9999 },
     motorCurrent:        { type: "int", scale: 1, suffix: "A", min: 0, max: 140 },
 
-    display_parameter:   { type: "bool", suffix: "" },
+    display_parameter:   { type: "bool", suffix: "", defaultValue: false },
     maxAssistSteps:      { type: "int", scale: 1, suffix: "level", min: 0, max: 10 },
 
     maxMotorCurrent:     { type: "array", size: 11,  scale: 1, suffix: "A", min: 0, max: 10 },
@@ -36,8 +36,8 @@ const METADATA_EBIKE = {
 
 // 2) Und hier das Mapping: Original‑Key → Alias‑Name + welche Meta‑Properties mitkommen
 const FIELD_MAP_EBIKE = {
-    motorSerial:        { alias:"motorSerial",      meta:["type"] },
     controllerSerial:   { alias:"controllerSerial", meta:["type"] },
+    motorSerial:        { alias:"motorSerial",      meta:["type"] },
 
     torqueFactor:       { alias:"torqueFactor",     meta:["type","size","scale","suffix","min","max","decimals"] },
     trottleFactor:      { alias:"trottleFactor",    meta:["type","size","scale","suffix","min","max","decimals"] },

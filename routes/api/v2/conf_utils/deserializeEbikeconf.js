@@ -1,52 +1,14 @@
-const {METADATA_EBIKE} = require("../conf_data/confEbikeFields");
+const {METADATA_EBIKE} = require("../../../../conf_data/confEbikeFields");
+const { createBufferReaders, convertArrayToString, convertIndexToEnum } = require("./Helper");
 
 function deserializeEbikeconf_V1(buffer) {
-    const payload = buffer;
-    let offset = 0;
+    console.log(buffer);
+    const readers = createBufferReaders(buffer);
+    const {
+        readUInt8, readInt16, readUInt16, readInt32, readUInt32,
+        readFloat16, readFloat32Auto, readArray
+    } = readers;
 
-    const readUInt16 = () => {
-        const val = payload.readUInt16BE(offset);
-        offset += 2;
-        return val;
-    };
-
-    const readUInt32 = () => {
-        const val = payload.readUInt32BE(offset);
-        offset += 4;
-        return val;
-    };
-
-    const readArray = (length) => {
-        if (offset + length > payload.length) {
-            throw new Error("Buffer overflow while reading array");
-        }
-        const arr = [];
-        for (let i = 0; i < length; i++) {
-            arr.push(payload[offset++]);
-        }
-        return arr;
-    };
-
-    // Konvertiert Byte-Array zu String
-    const convertArrayToString = (byteArray) => {
-        if (Array.isArray(byteArray)) {
-            return byteArray
-                .filter(byte => byte !== 0)  // Entferne Null-Bytes
-                .map(byte => String.fromCharCode(byte))  // Konvertiere zu Zeichen
-                .join('');  // Verbinde zu einem String
-        }
-        return "";
-    }
-
-    const convertIndexToEnum = (index, enumArray) => {
-        // Prüfe ob der Index gültig ist
-        if (typeof index === 'number' && index >= 0 && index < enumArray.length) {
-            return enumArray[index];
-        }
-
-        // Falls der Index ungültig ist, gib den ersten Wert zurück
-        return enumArray[0];
-    }
 
     const conf = {};
     conf.signature = readUInt32();
@@ -67,29 +29,24 @@ function deserializeEbikeconf_V1(buffer) {
     conf.maxSpeedTrottle2  = readArray(11);
 
     conf.maxWatt        = readUInt16();
-    conf.batteryCurrent = payload[offset++];
+    conf.batteryCurrent = readUInt8();
     conf.wheelSize      = readUInt16();
-    conf.motorCurrent   = payload[offset++];
+    conf.motorCurrent   = readUInt8();
 
-    conf.display_parameter = !!payload[offset++];
-    conf.maxAssistSteps    = payload[offset++];
+    conf.display_parameter = !!readUInt8();
+    conf.maxAssistSteps    = readUInt8();
 
     conf.maxMotorCurrent  = readArray(11);
     conf.maxMotorCurrent2 = readArray(11);
 
-    conf.wattPadelecMode = convertIndexToEnum(payload[offset++], METADATA_EBIKE.wattPadelecMode.enums);
+    conf.wattPadelecMode = convertIndexToEnum(readUInt8(), METADATA_EBIKE.wattPadelecMode.enums);
+    console.log(conf.wattPadelecMode);
 
     conf.senseCadence  = readArray(11);
     conf.senseCadence2 = readArray(11);
 
-    conf.crank_length = payload[offset++];
+    conf.crank_length = readUInt8();
     return conf;
 }
 
-function deserializeEbikeconf_V2(buffer) {
-
-    const conf = {};
-    return conf;
-}
-
-module.exports = { deserializeEbikeconf_V1, deserializeEbikeconf_V2 };
+module.exports = { deserializeEbikeconf_V1 };

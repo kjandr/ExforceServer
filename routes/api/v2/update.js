@@ -28,7 +28,7 @@ module.exports = () => {
 
     // Lade Geräteinfos aus Datei
     function loadDevices() {
-        return JSON.parse(fs.readFileSync("devices.json", "utf-8")).controllers;
+        return JSON.parse(fs.readFileSync("devices.json", "utf-8")).controller;
     }
 
     // 🧪 Check-Firmware-Update (geschützt)

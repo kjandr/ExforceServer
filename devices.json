@@ -1,21 +1,41 @@
 {
-  "controllers": [
+  "controller": [
     {
-      "type": "EX8-560",
+      "type": "EX8_560",
       "preset": {
-        "serial_no": "A18",
-        "uuid": "uuid560",
-        "battery_cutoff_start": 41.5,
-        "battery_cutoff_end": 39.0,
-        "battery_cells": 13,
-        "battery_ah": 14,
-        "battery_current_max": 5,
-        "battery_current_min": -5,
-        "operating_time": 0
+        "user_id": -1,
+        "remark": "",
+        "type": "EX8_560",
+        "engine_id": -1,
+        "operating_time": 0,
+        "controllerSerial": "",
+        "motorSerial": "",
+        "torqueFactor": [0,100,100,100,100,100,100,100,100,100,100],
+        "trottleFactor": [0,100,100,100,100,100,100,100,100,100,100],
+        "senseTorque": [0,1,2,3,4,5,6,7,8,9,10],
+        "maxSpeedTorque": [0,100,100,100,100,100,100,100,100,100,100],
+        "maxSpeedTrottle": [0,100,100,100,100,100,100,100,100,100,100],
+        "torqueFactor2": [0,30,30,30,30,30,30,30,30,30,30],
+        "trottleFactor2": [0,30,30,30,30,30,30,30,30,30,30],
+        "senseTorque2": [0,1,2,3,4,5,6,7,8,9,10],
+        "maxSpeedTorque2": [0,25,25,25,25,25,25,25,25,25,25],
+        "maxSpeedTrottle2": [0,6,6,6,6,6,6,6,6,6,6],
+        "maxWatt": 2000,
+        "batteryCurrent": 5,
+        "wheelSize": 2260,
+        "motorCurrent": 20,
+        "display_Paramter": false,
+        "maxAssistSteps": 10,
+        "maxMotorCurrent": [0,10,10,10,10,10,10,10,10,10,10],
+        "maxMotorCurrent2": [0,10,10,10,10,10,10,10,10,10,10],
+        "wattPadelecMode": "off",
+        "senseCadence": [0,2,2,2,2,2,2,2,2,2,2],
+        "senseCadence2": [0,2,2,2,2,2,2,2,2,2,2],
+        "crank_length": 165
       }
     },
     {
-      "type": "EX8-620",
+      "type": "EX8_620",
       "preset": {
         "serial_no": "A13",
         "uuid": "uuid620",
@@ -25,6 +45,14 @@
         "battery_ah": 14,
         "battery_current_max": 5,
         "battery_current_min": -5,
+        "maxWatt": 2000,
+        "wheelSize": 2260,
+        "displayParamter": false,
+        "maxAssistSteps": 10,
+        "wattPadelecMode": "off",
+        "crankLength": 165,
+        "temp_cutoff_end": 100.0,
+        "temp_cutoff_start": 80.0,
         "operating_time": 0
       }
     }
@@ -38,27 +66,41 @@
       "14": { "battery_cutoff_start": 44.5, "battery_cutoff_end": 42.0 }
     }
   },
-  "engines": [
+  "engine": [
     {
       "type": "G510.1000",
       "preset": {
-        "serial_no": "027",
+        "user_id": -1,
+        "remark": "",
+        "type": "G510.1000",
         "controller_id": -1,
-        "current_ki": 35.0,
-        "current_kp": 0.3,
-        "freq_foc_khz": 30.0,
-        "flux_linkage_mwb": 23.5,
-        "inductance_uh": 400.0,
-        "resistance_mr": 54.0,
-        "observer_gain": 3.0,
-        "current_max": 80.0,
-        "erpm_max": 30000,
-        "wattage_max": 2500,
-        "temp_type": "PTC 1K at 100C",
-        "temp_cutoff_end": 140.0,
-        "temp_cutoff_start": 120.0,
+        "serial_no": "",
         "mileage_km": 0,
-        "operating_time": 0
+        "foc_encoder_inverted": false,
+        "foc_encoder_offset": 180,
+        "foc_encoder_ratio": 4,
+        "foc_sensor_mode": "Sensorless",
+        "l_battery_cut_end": 42,
+        "l_battery_cut_start": 44.5,
+        "si_battery_ah": 14,
+        "si_battery_cells": 14,
+        "foc_current_ki": 35.0,
+        "foc_current_kp": 0.3,
+        "foc_motor_flux_linkage": 23.5,
+        "foc_motor_l": 400.0,
+        "foc_motor_r": 54.0,
+        "l_current_max": 5,
+        "l_max_erpm": 30000,
+        "l_watt_max": 50,
+        "foc_f_zv": 30.0,
+        "l_in_current_max": 5,
+        "l_in_current_min": -5,
+        "foc_observer_gain": 3.0,
+        "m_motor_temp_sens_type": "PTC 1K at 100 °C",
+        "l_temp_fet_start": 70.0,
+        "l_temp_fet_end": 80.0,
+        "l_temp_motor_start": 120.0,
+        "l_temp_motor_end": 140.0
       }
     },
     {

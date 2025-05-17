@@ -5,6 +5,7 @@ const { authenticateJWT , authorizeRole, validateUUID } = require("@middleware/a
 const userRoutes = require("./user");
 const updateRoutes = require("./update");
 const confRoutes = require("./conf");
+const dbRoutes = require("./db");
 
 module.exports = () => {
     const router = express.Router();
@@ -16,6 +17,8 @@ module.exports = () => {
 
     // API V2-Subrouten definieren
     router.use("/user", userRoutes());
+
+    router.use("/db", dbRoutes());
 
     // Middleware für alle Admin-Routen hinzufügen
     router.use(authenticateJWT); // Authentifizierung für alle Admin-Routen

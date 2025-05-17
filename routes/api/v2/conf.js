@@ -12,13 +12,14 @@ const { serializeAppconf_V1 } = require("./conf_utils/serializeAppconf");
 const { decrypt, encrypted } = require("./conf_utils/crypto");
 const { versionLt, mergeConf, decodeAndMapAliases, uuidToBytes } = require("./conf_utils/helper");
 
-const { METADATA_MC, FIELD_MAP_MC } = require("./conf_data/confMcFields");
-const { METADATA_EBIKE, FIELD_MAP_EBIKE } = require("./conf_data/confEbikeFields");
-const { METADATA_APP, FIELD_MAP_APP } = require("./conf_data/confAppFields");
+const { METADATA_MC, FIELD_MAP_MC } = require("@conf_data/confMcFields");
+const { METADATA_EBIKE, FIELD_MAP_EBIKE } = require("@conf_data/confEbikeFields");
+const { METADATA_APP, FIELD_MAP_APP } = require("@conf_data/confAppFields");
 
+const loadDevices = require("@utils/loadDevices");
 
 const SIGNATURES = {
-    mc: { v1: 2525666056 },
+    mc: { v1: 4165796136 },
     ebike: { v1: 1315649970 },
     app: { v1: 3733512279 }
 };
@@ -76,21 +77,36 @@ function encryptedConf(buffer, salt, version) {
     return encrypted(buffer, salt);
 }
 
-function controllerAktivation(conf, motorSerial, controllerSerial) {
-    // Prüfe ob es sich um eine Ebike- oder MC-Konfiguration handelt
-    if ('maxWatt' in conf) {
-        // Ebike-Konfiguration
-        conf.maxWatt = 750;
-        conf.batteryCurrent = 25;
-        conf.motorCurrent = 25;
+function controllerAktivation(conf, hwVersion) {
 
-    } else if ('l_watt_max' in conf) {
-        // MC-Konfiguration
-        conf.l_watt_max = 750;
-        conf.l_in_current_max = 25;
-        conf.l_current_max = 25;
-    } else {
-        throw new Error('Unbekannter Konfigurationstyp: Weder Ebike noch MC Felder gefunden');
+    if (conf.motorSerial === null && conf.motorSerial === undefined &&
+        conf.controllerSerial === null && conf.controllerSerial === undefined) {
+        delete conf.motorSerial;
+        delete conf.controllerSerial;
+        return conf;
+    }
+
+    const devices = loadDevices();
+    const controller560 = devices.controller.find(controller => controller.type === 'EX8_560');
+
+    if (controller560) {
+        const preset560 = controller560.preset;
+
+        // Prüfe ob es sich um eine Ebike- oder MC-Konfiguration handelt
+        if ('maxWatt' in conf) {
+            // Ebike-Konfiguration
+            conf.maxWatt = 750;
+            conf.batteryCurrent = 25;
+            conf.motorCurrent = 25;
+
+        } else if ('l_watt_max' in conf) {
+            // MC-Konfiguration
+            conf.l_watt_max = 750;
+            conf.l_in_current_max = 25;
+            conf.l_current_max = 25;
+        } else {
+            throw new Error('Unbekannter Konfigurationstyp: Weder Ebike noch MC Felder gefunden');
+        }
     }
 
     return conf;
@@ -193,7 +209,7 @@ function createSetConfigHandler({ deserialize, serialize, fieldMap, signatures }
     return (req, res, next) => {
         try {
             // Extrahiere Anfragedaten
-            const { uuid, version, conf: confB64, values } = req.body;
+            const { hwVersion, uuid, version, conf: confB64, values } = req.body;
 
             // Validiere den Base64-String
             if (typeof confB64 !== "string") {
@@ -220,12 +236,6 @@ function createSetConfigHandler({ deserialize, serialize, fieldMap, signatures }
 
             // Aktualisiere die Konfiguration mit den neuen Werten
             mergeConf(conf, newValues);
-
-            // Prüfen ob motorSerial und serialController vorhanden sind und aktiviere den Controller.
-            if (conf.motorSerial !== null && conf.motorSerial !== undefined &&
-                conf.controllerSerial !== null && conf.controllerSerial !== undefined) {
-                conf = controllerAktivation(conf, conf.motorSerial, conf.controllerSerial);
-            }
 
             // Serialisiere die aktualisierte Konfiguration mit der ursprünglichen Signatur
             const serialized = serialize(conf, signature);

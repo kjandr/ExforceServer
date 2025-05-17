@@ -42,8 +42,9 @@ app.use("/api/v2", apiV2Routes);
 const apiV3Routes = require("./routes/api/v3/index")();
 app.use("/api/v3", apiV3Routes);
 
-const adminRoutes = require("./routes/admin/index")();
-app.use("/admin", adminRoutes);
+const { createRouter, setupAdminJS } = require("./routes/admin/index");
+const adminRouter = createRouter();
+app.use("/admin", adminRouter);
 
 //-------------------------------------------------------------------------
 
@@ -63,6 +64,9 @@ async function startServer() {
     try {
         // Datenbanktabellen initialisieren
         await initializeTables();
+
+        // AdminJS einrichten
+        const adminJs = await setupAdminJS(app, { userDb, engineDb, controllerDb, logDb });
 
         await ensureColumnsExist([
             {
@@ -95,9 +99,18 @@ async function startServer() {
             }
         ]);
 
+        // === Error-Handling-Middleware ===
+        app.use((err, req, res, next) => {
+            console.error(err);
+            res
+                .status(err.statusCode || 500)
+                .json({ error: err.message || 'Unbekannter Serverfehler' });
+        });
+
         // Server starten
         app.listen(url.port, () => {
             console.log(`Server laeuft unter der URL ${url.baseURL}`);
+            console.log(`AdminJS-Panel verfügbar unter ${url.baseURL}${adminJs.options.rootPath}`);
         });
     } catch (error) {
         console.error('Fehler beim Starten des Servers:', error);

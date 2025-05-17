@@ -1,5 +1,6 @@
 // 1) Definiere hier in einem Objekt alle statischen Metadaten je Feld:
 const METADATA_MC = {
+
     foc_encoder_inverted:   { type: "bool",     suffix: "" },
     foc_encoder_offset:     { type: "double",   scale: 1, suffix: "°", min: 0, max: 360, decimals: 2 },
     foc_encoder_ratio:      { type: "double",   scale: 1, suffix: "-", min: 0, max: 10000, decimals: 2 },
@@ -20,11 +21,16 @@ const METADATA_MC = {
     l_in_current_max:       { type: "double",   scale: 1, suffix: "A", min: 0, max: 1000, decimals: 2 },
     l_in_current_min:       { type: "double",   scale: 1, suffix: "A", min: -1000, max: 0.0, decimals: 2 },
     foc_observer_gain:      { type: "double",   scale: 0.000001, suffix: "gain", min: 0, max: 20000000000.0, decimals: 2 },
-    m_motor_temp_sens_type: { type: "enum",     enums: ["NTC 10K at 25°C","PTC 1K at 100 °C","KTY83/122","NTC 100K at 25°C","KTY84/130"] }
+    m_motor_temp_sens_type: { type: "enum",     enums: ["NTC 10K at 25°C","PTC 1K at 100 °C","KTY83/122","NTC 100K at 25°C","KTY84/130"] },
+    l_temp_fet_start:       { type: "double",   scale: 1, suffix: "°C", min: 40, max: 180, decimals: 1 },
+    l_temp_fet_end:         { type: "double",   scale: 1, suffix: "°C", min: 40, max: 180, decimals: 1 },
+    l_temp_motor_start:     { type: "double",   scale: 1, suffix: "°C", min: 40, max: 180, decimals: 1 },
+    l_temp_motor_end:       { type: "double",   scale: 1, suffix: "°C", min: 40, max: 180, decimals: 1 },
 };
 
 // 2) Und hier das Mapping: Original‑Key → Alias‑Name + welche Meta‑Properties mitkommen
 const FIELD_MAP_MC = {
+
     foc_encoder_inverted:   { alias: "encInv",      meta: ["type","suffix"] },
     foc_encoder_offset:     { alias: "encOffset",   meta: ["type","scale","min","max","decimals","suffix"] },
     foc_encoder_ratio:      { alias: "encRatio",    meta: ["type","scale","min","max","decimals","suffix"] },
@@ -45,7 +51,11 @@ const FIELD_MAP_MC = {
     l_in_current_max:       { alias: "curBatMax",   meta: ["type","scale","min","max","decimals","suffix"] },
     l_in_current_min:       { alias: "curBatMin",   meta: ["type","scale","min","max","decimals","suffix"] },
     foc_observer_gain:      { alias: "observer",    meta: ["type","scale","min","max","decimals","suffix"] },
-    m_motor_temp_sens_type: {alias: "motorTempType",meta: ["type","enums"] }
+    m_motor_temp_sens_type: { alias: "motorTempType",meta: ["type","enums"] },
+    l_temp_fet_start:       { alias: "tempFetStart",meta: ["type","scale","min","max","decimals","suffix"] },
+    l_temp_fet_end:         { alias: "tempFetEnd",  meta: ["type","scale","min","max","decimals","suffix"] },
+    l_temp_motor_start:     { alias: "tempMotorStart",meta: ["type","scale","min","max","decimals","suffix"] },
+    l_temp_motor_end:       { alias: "tempMotorEnd",meta: ["type","scale","min","max","decimals","suffix"] },
 };
 
 module.exports = { METADATA_MC, FIELD_MAP_MC };

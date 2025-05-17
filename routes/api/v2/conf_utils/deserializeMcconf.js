@@ -1,76 +1,13 @@
-const { METADATA_MC } = require("../conf_data/confMcFields");
+const { METADATA_MC } = require("../../../../conf_data/confMcFields");
+const { createBufferReaders, convertIndexToEnum } = require("./Helper");
 
-function deserializeMcconf_V1(buffer) {
-    const payload = buffer; //.slice(2, -3);
-    let offset = 0;
 
-    // Helferfunktionen
-    const readUInt8 = () => {
-        const val = payload.readUInt8(offset);
-        offset += 1;
-        return val;
-    };
-
-    const readInt16 = () => {
-        const val = payload.readInt16BE(offset);
-        offset += 2;
-        return val;
-    };
-
-    const readUInt16 = () => {
-        const val = payload.readUInt16BE(offset);
-        offset += 2;
-        return val;
-    };
-
-    const readInt32 = () => {
-        const val = payload.readInt32BE(offset);
-        offset += 4;
-        return val;
-    };
-
-    const readUInt32 = () => {
-        const val = payload.readUInt32BE(offset);
-        offset += 4;
-        return val;
-    };
-
-    // Liest 2-Byte-Gleitkommazahl, skaliert durch scale
-    const readFloat16 = (scale) => readInt16() / scale;
-    // Liest 4-Byte-Gleitkommazahl
-    const readFloat32Auto = () => {
-        // Liest 4 Bytes als unsigned 32‑Bit
-        const res = readUInt32();
-
-        // Extrahiere Exponent, Mantisse und Vorzeichen
-        let e      = (res >>> 23) & 0xFF;
-        const sigI = res & 0x7FFFFF;
-        const neg  = (res >>> 31) !== 0;
-
-        // Berechne das Signifikand
-        let sig = 0.0;
-        if (e !== 0 || sigI !== 0) {
-            // entspricht (sig_i / (2^23 * 2)) + 0.5
-            sig = sigI / (8388608.0 * 2.0) + 0.5;
-            // adjust exponent bias (126 statt 127 im C‑Code)
-            e = e - 126;
-        }
-
-        if (neg) sig = -sig;
-
-        // ldexpf(sig, e) ≈ sig * 2^e
-        return sig * Math.pow(2, e);
-    }
-
-    const convertIndexToEnum = (index, enumArray) => {
-        // Prüfe ob der Index gültig ist
-        if (typeof index === 'number' && index >= 0 && index < enumArray.length) {
-            return enumArray[index];
-        }
-
-        // Falls der Index ungültig ist, gib den ersten Wert zurück
-        return enumArray[0];
-    }
+function deserializeMcconf_old(buffer) {
+    const readers = createBufferReaders(buffer);
+    const {
+        readUInt8, readInt16, readUInt16, readInt32, readUInt32,
+        readFloat16, readFloat32Auto, readArray
+    } = readers;
 
     const conf = {};
 
@@ -414,10 +351,55 @@ function deserializeMcconf_V1(buffer) {
     return conf;
 }
 
-function deserializeMcconf_V2(buffer) {
+function deserializeMcconf_V1(buffer) {
+    const readers = createBufferReaders(buffer);
+    const {
+        readUInt8, readInt16, readUInt16, readInt32, readUInt32,
+        readFloat16, readFloat32Auto, readArray
+    } = readers;
 
     const conf = {};
+
+    // 1. uint32_t MCCONF_SIGNATURE
+    conf.signature = readUInt32();
+
+    conf.l_current_max = readFloat32Auto();
+    conf.l_in_current_max = readFloat32Auto();
+    conf.l_in_current_min = readFloat32Auto();
+    conf.l_max_erpm = readFloat32Auto();
+
+    conf.l_battery_cut_start = readFloat32Auto();
+    conf.l_battery_cut_end = readFloat32Auto();
+
+    conf.l_temp_fet_start = readFloat16(10);
+    conf.l_temp_fet_end = readFloat16(10);
+    conf.l_temp_motor_start = readFloat16(10);
+    conf.l_temp_motor_end = readFloat16(10);
+
+    conf.l_watt_max = readFloat32Auto();
+
+    conf.foc_current_kp = readFloat32Auto();
+    conf.foc_current_ki = readFloat32Auto();
+    conf.foc_f_zv = readFloat32Auto();
+
+    conf.foc_encoder_inverted = readUInt8();
+    conf.foc_encoder_offset = readFloat32Auto();
+    conf.foc_encoder_ratio = readFloat32Auto();
+    conf.foc_sensor_mode = readUInt8();
+
+    conf.foc_motor_l = readFloat32Auto();
+    conf.foc_motor_r = readFloat32Auto();
+    conf.foc_motor_flux_linkage = readFloat32Auto();
+
+    conf.foc_observer_gain = readFloat32Auto();
+
+    conf.m_motor_temp_sens_type = convertIndexToEnum(readUInt8(), METADATA_MC.m_motor_temp_sens_type.enums);
+
+    conf.si_battery_cells = convertIndexToEnum(readUInt8() - 10, METADATA_MC.si_battery_cells.enums);
+
+    conf.si_battery_ah = readFloat32Auto();
+
     return conf;
 }
 
-module.exports = { deserializeMcconf_V1, deserializeMcconf_V2 };
+module.exports = { deserializeMcconf_V1, deserializeMcconf_old };

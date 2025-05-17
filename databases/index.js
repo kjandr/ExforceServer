@@ -1,6 +1,7 @@
 const sqlite3 = require("sqlite3").verbose();
 const { databasePaths } = require("@config");
 const schemaDefs = require("@schemas/schemas");
+const { addConfFieldsToDb, getAllColumnsForTable } = require("@databases/extendedColumns");
 
 const connections = {
     userDb: new sqlite3.Database(databasePaths.user),
@@ -15,7 +16,7 @@ Object.entries(connections).forEach(([key, db]) => {
 });
 
 async function initializeTables() {
-    for (const [tableName, { db, schema, name }] of Object.entries(schemaDefs)) {
+    for (const [tableName, { db, schema, name, extendedColumns }] of Object.entries(schemaDefs)) {
         const database = connections[db];
         if (!database) {
             console.warn(`⚠️ Kein DB-Handle gefunden für: ${db}`);
@@ -32,6 +33,14 @@ async function initializeTables() {
                 }
             });
         });
+        // Nur für Controller- und Engine-Datenbanken: Zusatzspalten ergänzen
+        if (["controllerDb", "engineDb"].includes(db)) {
+            await addConfFieldsToDb(database, tableName, extendedColumns);
+            let test1 = getAllColumnsForTable(tableName, extendedColumns, "EX8_560");
+            let test2 = getAllColumnsForTable(tableName, extendedColumns, "G510.1000");
+            console.log(test1);
+            console.log(test2);
+        }
     }
 }
 

@@ -1,25 +1,11 @@
-function deserializeAppconf_V1(buffer) {
-    let offset = 0;
+const {createBufferReaders} = require("./helper");
 
-    // Helferfunktionen
-    const readUInt8 = () => buffer.readUInt8(offset++);
-    const readUInt16 = () => { const v = buffer.readUInt16BE(offset); offset += 2; return v; };
-    const readUInt32 = () => { const v = buffer.readUInt32BE(offset); offset += 4; return v; };
-    const readInt16  = () => { const v = buffer.readInt16BE(offset);  offset += 2; return v; };
-    const readFloat16 = scale => readInt16() / scale;
-    const readFloat32Auto = () => {
-        const res = buffer.readUInt32BE(offset); offset += 4;
-        let e      = (res >>> 23) & 0xFF;
-        const sigI = res & 0x7FFFFF;
-        const neg  = (res >>> 31) !== 0;
-        let sig = 0.0;
-        if (e !== 0 || sigI !== 0) {
-            sig = sigI / (8388608.0 * 2.0) + 0.5;
-            e = e - 126;
-        }
-        if (neg) sig = -sig;
-        return sig * Math.pow(2, e);
-    };
+function deserializeAppconf_V1(buffer) {
+    const readers = createBufferReaders(buffer);
+    const {
+        readUInt8, readInt16, readUInt16, readInt32, readUInt32,
+        readFloat16, readFloat32Auto, readArray
+    } = readers;
 
     const conf = {};
 
@@ -233,10 +219,4 @@ function deserializeAppconf_V1(buffer) {
     return conf;
 }
 
-function deserializeAppconf_V2(buffer) {
-
-    const conf = {};
-    return conf;
-}
-
-module.exports = { deserializeAppconf_V1, deserializeAppconf_V2 };
+module.exports = { deserializeAppconf_V1 };
