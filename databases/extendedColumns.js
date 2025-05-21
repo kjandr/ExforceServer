@@ -13,6 +13,7 @@ const standardControllerColumns = [
     { name: "user_id", type: "INTEGER NOT NULL DEFAULT -1" },
     { name: "remark", type: "TEXT" },
     { name: "type", type: "TEXT NOT NULL" },
+    { name: "uuid", type: "TEXT" },
     { name: "engine_id", type: "INTEGER" },
     { name: "operating_time", type: "INTEGER NOT NULL DEFAULT 0" }
 ];
@@ -21,6 +22,7 @@ const standardEngineColumns = [
     { name: "user_id", type: "INTEGER NOT NULL DEFAULT -1" },
     { name: "remark", type: "TEXT" },
     { name: "type", type: "TEXT NOT NULL" },
+    { name: "uuid", type: "TEXT" },
     { name: "controller_id", type: "INTEGER" },
     { name: "serial_no", type: "TEXT NOT NULL" },
     { name: "mileage_km", type: "INTEGER NOT NULL DEFAULT 0" }

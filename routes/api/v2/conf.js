@@ -18,6 +18,10 @@ const { METADATA_APP, FIELD_MAP_APP } = require("@conf_data/confAppFields");
 
 const loadDevices = require("@utils/loadDevices");
 
+const { controllerDb, engineDb } = require("@databases");
+const { buildInsertQuery, buildUpdateQuery } = require("@databases/sqlBuilder");
+const { getColumnNamesFromDb } = require("@databases/dbUtils");
+
 const SIGNATURES = {
     mc: { v1: 4165796136 },
     ebike: { v1: 1315649970 },
@@ -113,6 +117,71 @@ function controllerAktivation(conf, hwVersion) {
 }
 
 /**
+ * Speichert die Konfiguration selektiv in die entsprechende Datenbank.
+ * Es werden nur Felder gespeichert, die tatsächlich als Spalten in der Tabelle existieren.
+ *
+ * @param {string} configType - "ebike" oder "mc"
+ * @param {string} uuid - UUID des Datensatzes
+ * @param {object} conf - Deserialisierte Konfiguration
+ */
+async function writeConfigToDb(configType, hw, uuid, conf, metadata) {
+    const db = configType === "ebike" ? controllerDb :
+        configType === "mc" ? engineDb : null;
+    const table = configType === "ebike" ? "controller" :
+        configType === "mc" ? "engine" : null;
+
+    if (!db) return;
+
+    // Füge den Typ aus `hw` hinzu, falls nicht vorhanden
+    if (!conf.type && hw) {
+        conf.type = hw;
+    }
+
+    const columns = await getColumnNamesFromDb(db, table);
+
+    const filtered = Object.fromEntries(
+        Object.entries(conf).filter(([key]) => columns.includes(key))
+    );
+
+    // ✨ Dynamisch alle Arrays serialisieren
+    for (const [key, value] of Object.entries(filtered)) {
+        if (metadata[key]?.type === "array" && Array.isArray(value)) {
+            filtered[key] = JSON.stringify(value);
+        }
+    }
+
+    filtered.uuid = uuid;
+
+    return new Promise((resolve, reject) => {
+        db.get(`SELECT 1 FROM ${table} WHERE uuid = ?`, [uuid], (err, row) => {
+            if (err) return reject(err);
+
+            if (row) {
+                const updateQuery = buildUpdateQuery(table, Object.keys(filtered), "uuid");
+                const values = [...Object.values(filtered), uuid];
+
+                db.run(updateQuery.sql, values, function (err) {
+                    if (err) return reject(err);
+                    resolve("updated");
+                });
+            } else {
+                // Entferne created_at und updated_at → SQLite setzt automatisch DEFAULT CURRENT_TIMESTAMP
+                delete filtered.created_at;
+                delete filtered.updated_at;
+
+                const insertQuery = buildInsertQuery(table, Object.keys(filtered));
+                const values = Object.values(filtered);
+
+                db.run(insertQuery.sql, values, function (err) {
+                    if (err) return reject(err);
+                    resolve("inserted");
+                });
+            }
+        });
+    });
+}
+
+/**
  * Erzeugt einen HTTP-Handler für POST-Anfragen zum Abrufen von Konfigurationen
  *
  * @param {Object} options
@@ -205,20 +274,20 @@ function createGetConfigHandler({ deserialize, fieldMap, metadata, signatures })
  * @param {Object} options.signatures - Unterstützte Signaturversionen für die Konfiguration
  * @returns {Function} Express-Handler-Funktion für PUT-Anfragen
  */
-function createSetConfigHandler({ deserialize, serialize, fieldMap, signatures }) {
-    return (req, res, next) => {
+function createSetConfigHandler({ deserialize, serialize, fieldMap, signatures, metadata, configType }) {
+    return async (req, res, next) => {
         try {
             // Extrahiere Anfragedaten
-            const { hwVersion, uuid, version, conf: confB64, values } = req.body;
+            const {hw, uuid, version, conf: confB64, values} = req.body;
 
             // Validiere den Base64-String
             if (typeof confB64 !== "string") {
-                return res.status(400).json({ error: "`conf` muss ein Base64-String sein." });
+                return res.status(400).json({error: "`conf` muss ein Base64-String sein."});
             }
 
             // Konvertiere Base64 in Binärdaten und entschlüssele
             const encryptedInput = Buffer.from(confB64, "base64");
-            const { plain, salt } = decryptConf(encryptedInput, version);
+            const {plain, salt} = decryptConf(encryptedInput, version);
 
             // Überprüfe die Signatur am Anfang der Konfiguration
             const signature = plain.readUInt32BE(0);
@@ -231,7 +300,7 @@ function createSetConfigHandler({ deserialize, serialize, fieldMap, signatures }
             if (signature === signatures.v1) {
                 conf = deserialize(plain);
             } else {
-                return res.status(400).json({ error: `Unbekannte Signatur: ${signature}` });
+                return res.status(400).json({error: `Unbekannte Signatur: ${signature}`});
             }
 
             // Aktualisiere die Konfiguration mit den neuen Werten
@@ -247,11 +316,15 @@ function createSetConfigHandler({ deserialize, serialize, fieldMap, signatures }
             const finalBuffer = Buffer.concat([serialized, uuidBytes]);
 
             // Verschlüssele die Daten mit dem ursprünglichen Salt und konvertiere zu Base64
-            const { encrypted } = encryptedConf(finalBuffer, salt, version);
+            const {encrypted} = encryptedConf(finalBuffer, salt, version);
             const resultConfB64 = encrypted.toString('base64');
 
-            // Hier würde man die Konfiguration speichern/aktualisieren
-            // z.B. in einer Datenbank
+            // Datenbank speichern (nur für ebike/mc)
+            try {
+                await writeConfigToDb(configType, hw, uuid, conf, metadata);
+            } catch (err) {
+                return next(err);
+            }
 
             // Erfolgreiche Antwort mit der aktualisierten Konfiguration
             res.json({
@@ -282,7 +355,7 @@ module.exports = () => {
 
     // Dynamisch Setter-Routen registrieren
     for (const [path, set_config] of Object.entries(SET_CONFIG_MAP)) {
-        router.put(`/${path}`, createSetConfigHandler(set_config));
+        router.put(`/${path}`, createSetConfigHandler({ ...set_config, configType: path }));
     }
 
     return router;
