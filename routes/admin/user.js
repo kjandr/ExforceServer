@@ -2,7 +2,7 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const { userDb, logDb } = require("@databases");
 const userFields = require("@databases/userFields");
-const { buildInsertQuery, buildUpdateQuery } = require("@databases/sqlBuilder");
+const { buildInsertQuery, buildUpdateQuery } = require("@databases/dbUtils");
 
 module.exports = () => {
     const router = express.Router();

@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { getColumnNames, addColumnIfMissing } = require("@databases/dbUtils");
 
 
 // Gemeinsame Spalten für alle Geräte-Tabellen
@@ -46,43 +47,6 @@ async function addSpecificColumns(db, tableName, existingColumns = []) {
     }
 }
 
-function getExistingColumns(db, tableName) {
-    return new Promise((resolve, reject) => {
-        const sql = `PRAGMA table_info(${tableName})`;
-        db.all(sql, (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows.map(r => r.name));
-        });
-    });
-}
-
-async function addColumnIfMissing(db, tableName, column, type = "TEXT") {
-    return new Promise((resolve, reject) => {
-        if (typeof column !== 'string' || column === '') {
-            console.error(`Ungültiger Spaltenname: ${column}`);
-            return resolve();
-        }
-
-        const sql = `ALTER TABLE ${tableName} ADD COLUMN "${column}" ${type}`;
-        console.log(`SQL-Befehl: ${sql}`);
-
-        db.run(sql, (err) => {
-            if (err) {
-                if (err.message.includes("duplicate")) {
-                    console.log(`Spalte "${column}" existiert bereits.`);
-                    resolve();
-                } else {
-                    console.error(`Fehler beim Hinzufügen der Spalte ${column}:`, err.message);
-                    reject(err);
-                }
-            } else {
-                console.log(`Spalte "${column}" erfolgreich hinzugefügt.`);
-                resolve();
-            }
-        });
-    });
-}
-
 function mapJsonTypeToSql(type) {
     switch (type) {
         case "float":
@@ -103,7 +67,7 @@ function mapJsonTypeToSql(type) {
 async function addConfFieldsToDb(db, tableName, extendedColumns) {
     try {
         // Prüfe zuerst, ob die Standardspalten existieren
-        const existing = await getExistingColumns(db, tableName);
+        const existing = await getColumnNames(db, tableName);
 
         // Füge Standardspalten hinzu, wenn sie fehlen
         for (const column of standardDeviceColumns) {

@@ -375,7 +375,7 @@ function serializeMcconf_V1(conf, signature) {
     writeUInt8(conf.foc_encoder_inverted);
     writeFloat32Auto(conf.foc_encoder_offset);
     writeFloat32Auto(conf.foc_encoder_ratio);
-    writeUInt8(conf.foc_sensor_mode);
+    writeUInt8(convertEnumToIndex(conf.foc_sensor_mode, METADATA_MC.foc_sensor_mode.enums));
 
     writeFloat32Auto(conf.foc_motor_l);
     writeFloat32Auto(conf.foc_motor_r);
@@ -388,6 +388,8 @@ function serializeMcconf_V1(conf, signature) {
     writeUInt8(convertEnumToIndex(conf.si_battery_cells, METADATA_MC.si_battery_cells.enums) + 10);
 
     writeFloat32Auto(conf.si_battery_ah);
+
+    writeFloat32Auto(conf.foc_openloop_rpm);
 
     // Concatenate and return a single Buffer
     return writers.getBuffer();  // Korrigiert: offset zu parts geändert

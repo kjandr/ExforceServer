@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const { logFailedAndMaybeBlock } = require("@log");
 const { userDb, logDb } = require("@databases");
 const { url, secret_key } = require("@config");
-const { buildInsertQuery, buildUpdateQuery } = require("@databases/sqlBuilder");
+const { buildInsertQuery, buildUpdateQuery } = require("@databases/dbUtils");
 const userFields = require("@databases/userFields");
 
 module.exports = () => {
@@ -55,7 +55,8 @@ module.exports = () => {
             const isCpuMatch = user.cpu_id === cpu_id;
             const isActive = user.active === 1;
 
-            if (!isMatch || !isCpuMatch || !isActive) {
+            if (!isMatch || (!isCpuMatch && user.role !== "admin") || !isActive) {
+                console.log(isMatch, isCpuMatch, isActive, user.role);
                 logFailedAndMaybeBlock(user.id, email, cpu_id, ip, res);
                 return;
             }

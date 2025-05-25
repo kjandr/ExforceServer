@@ -19,8 +19,12 @@ const { METADATA_APP, FIELD_MAP_APP } = require("@conf_data/confAppFields");
 const loadDevices = require("@utils/loadDevices");
 
 const { controllerDb, engineDb } = require("@databases");
-const { buildInsertQuery, buildUpdateQuery } = require("@databases/sqlBuilder");
-const { getColumnNamesFromDb } = require("@databases/dbUtils");
+const { getColumnNames,
+    runAsync,
+    getAsync,
+    buildInsertQuery,
+    buildUpdateQuery
+} = require("@databases/dbUtils");
 
 const SIGNATURES = {
     mc: { v1: 4165796136 },
@@ -31,18 +35,21 @@ const SIGNATURES = {
 const GET_CONFIG_MAP = {
     mc: {
         deserialize: deserializeMcconf_V1,
+        serialize: serializeMcconf_V1,
         fieldMap: FIELD_MAP_MC,
         metadata: METADATA_MC,
         signatures: SIGNATURES.mc
     },
     ebike: {
         deserialize: deserializeEbikeconf_V1,
+        serialize: serializeEbikeconf_V1,
         fieldMap: FIELD_MAP_EBIKE,
         metadata: METADATA_EBIKE,
         signatures: SIGNATURES.ebike
     },
     app: {
         deserialize: deserializeAppconf_V1,
+        serialize: serializeAppconf_V1,
         fieldMap: FIELD_MAP_APP,
         metadata: METADATA_APP,
         signatures: SIGNATURES.app
@@ -130,56 +137,96 @@ async function writeConfigToDb(configType, hw, uuid, conf, metadata) {
     const table = configType === "ebike" ? "controller" :
         configType === "mc" ? "engine" : null;
 
-    if (!db) return;
+    if (!db || !table) return;
 
     // Füge den Typ aus `hw` hinzu, falls nicht vorhanden
     if (!conf.type && hw) {
         conf.type = hw;
     }
 
-    const columns = await getColumnNamesFromDb(db, table);
+    const columns = await getColumnNames(db, table);
 
     const filtered = Object.fromEntries(
         Object.entries(conf).filter(([key]) => columns.includes(key))
     );
 
-    // ✨ Dynamisch alle Arrays serialisieren
     for (const [key, value] of Object.entries(filtered)) {
-        if (metadata[key]?.type === "array" && Array.isArray(value)) {
+        if (metadata?.[key]?.type === "array" && Array.isArray(value)) {
             filtered[key] = JSON.stringify(value);
         }
     }
 
     filtered.uuid = uuid;
 
-    return new Promise((resolve, reject) => {
-        db.get(`SELECT 1 FROM ${table} WHERE uuid = ?`, [uuid], (err, row) => {
-            if (err) return reject(err);
+    const existing = await getAsync(db, `SELECT 1 FROM ${table} WHERE uuid = ?`, [uuid]);
 
-            if (row) {
-                const updateQuery = buildUpdateQuery(table, Object.keys(filtered), "uuid");
-                const values = [...Object.values(filtered), uuid];
+    if (existing) {
+        const update = buildUpdateQuery(table, Object.keys(filtered), "uuid");
+        await runAsync(db, update.sql, [...Object.values(filtered), uuid]);
+        return "updated";
+    } else {
+        delete filtered.created_at;
+        delete filtered.updated_at;
 
-                db.run(updateQuery.sql, values, function (err) {
-                    if (err) return reject(err);
-                    resolve("updated");
-                });
-            } else {
-                // Entferne created_at und updated_at → SQLite setzt automatisch DEFAULT CURRENT_TIMESTAMP
-                delete filtered.created_at;
-                delete filtered.updated_at;
-
-                const insertQuery = buildInsertQuery(table, Object.keys(filtered));
-                const values = Object.values(filtered);
-
-                db.run(insertQuery.sql, values, function (err) {
-                    if (err) return reject(err);
-                    resolve("inserted");
-                });
-            }
-        });
-    });
+        const insert = buildInsertQuery(table, Object.keys(filtered));
+        await runAsync(db, insert.sql, Object.values(filtered));
+        return "inserted";
+    }
 }
+
+async function readConfigFromDb(configType, uuid, metadata) {
+    const db = configType === "ebike" ? controllerDb :
+        configType === "mc"    ? engineDb    : null;
+    const table = configType === "ebike" ? "controller" :
+        configType === "mc"    ? "engine"     : null;
+
+    if (!db || !table) return null;
+
+    const row = await getAsync(db, `SELECT * FROM ${table} WHERE uuid = ?`, [uuid]);
+    if (!row) return null;
+
+    const result = { ...row };
+
+    // Arrays aus JSON zurückwandeln (falls metadata verfügbar)
+    for (const [key, value] of Object.entries(result)) {
+        if (metadata?.[key]?.type === "array" && typeof value === "string") {
+            try {
+                result[key] = JSON.parse(value);
+            } catch {
+                // ungültiges JSON? ignorieren.
+            }
+        }
+    }
+
+    return result;
+}
+
+function processEncryptedConf({ confB64, version, signatures, deserialize, serialize, uuid }) {
+    const encrypted = Buffer.from(confB64, "base64");
+
+    const { plain, salt } = decryptConf(encrypted, version);
+    if (!plain || plain.length < 4) {
+        throw new Error("Ungültige oder zu kurze Konfigurationsdaten.");
+    }
+
+    const signature = plain.readUInt32BE(0);
+    if (signature !== signatures.v1) {
+        throw new Error(`Unbekannte Signatur: ${signature}`);
+    }
+
+    const conf = deserialize(plain);
+
+    const serializeToB64 = (confToSerialize) => {
+        const serialized = serialize(confToSerialize, signature);
+        const uuidBytes = uuidToBytes(uuid);
+        const finalBuffer = Buffer.concat([serialized, uuidBytes]);
+        const { encrypted: enc } = encryptedConf(finalBuffer, salt, version);
+        return enc.toString("base64");
+    };
+
+    return { conf, serializeToB64 };
+}
+
 
 /**
  * Erzeugt einen HTTP-Handler für POST-Anfragen zum Abrufen von Konfigurationen
@@ -191,41 +238,33 @@ async function writeConfigToDb(configType, hw, uuid, conf, metadata) {
  * @param {Object} options.signatures - Unterstützte Signaturcodes
  * @returns {Function} Express-Middleware zum Verarbeiten der Anfrage
  */
-function createGetConfigHandler({ deserialize, fieldMap, metadata, signatures }) {
-    return (req, res, next) => {
+function createGetConfigHandler({ deserialize, serialize, fieldMap, metadata, signatures }, configType) {
+    return async (req, res, next) => {
         try {
             // Extrahieren der Anfrageparameter
             const { uuid, version, conf: confB64 } = req.body;
+
+            if (!uuid) {
+                return res.status(400).json({ error: "`uuid` fehlt oder ist ungültig." });
+            }
 
             // Überprüfen, ob conf ein gültiger Base64-String ist
             if (typeof confB64 !== "string") {
                 return res.status(400).json({ error: "`conf` muss ein Base64-String sein." });
             }
 
-            // Base64-decodieren des verschlüsselten Konfigurations-Strings
-            const encrypted = Buffer.from(confB64, "base64");
+            // Entschlüsseln und parsen
+            const { conf, serializeToB64 } = processEncryptedConf({
+                confB64,
+                version,
+                signatures,
+                deserialize,
+                serialize,
+                uuid
+            });
 
-            // Entschlüsseln der Konfigurationsdaten
-            // decryptConf gibt ein Objekt mit dem entschlüsselten Buffer zurück
-            const { plain } = decryptConf(encrypted, version);
-
-            // Lesen der Signatur aus den ersten 4 Bytes
-            // Die Signatur identifiziert das Konfigurationsformat
-            const signature = plain.readUInt32BE(0);
-
-            // Deserialisieren der Konfiguration basierend auf der Signatur
-            let conf;
-            if (signature === signatures.v1) {
-                // V1-Format deserialisieren
-                conf = deserialize(plain);
-            } else {
-                // Bei unbekannter Signatur Fehler zurückgeben
-                return res.status(400).json({ error: `Unbekannte Signatur: ${signature}` });
-            }
-
-            // Erstellen eines gefilterten Konfigurationsobjekts für die Frontend-Anzeige
-            // Mit Metadaten anreichern und interne Keys in Frontend-Aliasse umwandeln
-            const filtered = {};
+            // Anzeige-Daten für das Frontend (conf direckt aus der Hardware, nicht DB!!)
+            const display = {};
             for (const [origKey, { alias, meta }] of Object.entries(fieldMap)) {
                 // Nur vorhandene Felder mit definierten Metadaten einbeziehen
                 if (conf.hasOwnProperty(origKey) && metadata[origKey]) {
@@ -238,18 +277,60 @@ function createGetConfigHandler({ deserialize, fieldMap, metadata, signatures })
                         }
                     }
                     // Speichern unter dem Frontend-Alias
-                    filtered[alias] = entry;
+                    display[alias] = entry;
                 }
             }
 
-            //console.log(filtered);
+            // Konfiguration mit DB-Werten anreichern
+            let restoredFromDb = false;
+            const dbValues = await readConfigFromDb(configType, uuid, metadata);
+            if (dbValues) {
+                const dbOverrides = {};
+                for (const [key, dbVal] of Object.entries(dbValues)) {
+                    if (conf.hasOwnProperty(key)) {
+                        const controllerVal = conf[key];
 
-            // Antwort mit UUID, Version und der aufbereiteten Konfiguration
+                        // Tief vergleichen: Arrays, Objekte, Primitive
+                        const isDifferent = Array.isArray(dbVal)
+                            ? JSON.stringify(dbVal) !== JSON.stringify(controllerVal)
+                            : dbVal !== controllerVal;
+
+                        if (isDifferent) {
+                            dbOverrides[key] = dbVal;
+                        }
+                    }
+                }
+                if (Object.keys(dbOverrides).length > 0) {
+                    console.log("🔄 Änderungen aus DB übernommen:");
+                    for (const key of Object.keys(dbOverrides)) {
+                        const original = conf[key];
+                        const fromDb = dbOverrides[key];
+
+                        console.log(`  ${key}:`, {
+                            vorher: original,
+                            ausDB: fromDb
+                        });
+                    }
+
+                    mergeConf(conf, dbOverrides);
+                    restoredFromDb = true;
+                }
+            }
+
+            // Serialisierte Rückgabe (neu verschlüsselt)
+            const resultConfB64 = serializeToB64(conf);
+
+            // Erfolgreiche Antwort
             res.json({
                 uuid,
                 version,
-                conf: filtered,
-                values: conf
+                conf: resultConfB64,
+                display, // sind aktuelle Werte aus der Hardware!! Kann sich zu conf unterscheiden!!
+                restore: restoredFromDb,
+                status: "success",
+                message: restoredFromDb
+                    ? "Konfiguration erfolgreich aus DB ergänzt"
+                    : "Konfiguration erfolgreich gelesen"
             });
         } catch (err) {
             // Fehlerbehandlung an den nächsten Error-Handler übergeben
@@ -280,53 +361,36 @@ function createSetConfigHandler({ deserialize, serialize, fieldMap, signatures, 
             // Extrahiere Anfragedaten
             const {hw, uuid, version, conf: confB64, values} = req.body;
 
+            if (!uuid) {
+                return res.status(400).json({ error: "`uuid` fehlt oder ist ungültig." });
+            }
+
             // Validiere den Base64-String
             if (typeof confB64 !== "string") {
                 return res.status(400).json({error: "`conf` muss ein Base64-String sein."});
             }
 
-            // Konvertiere Base64 in Binärdaten und entschlüssele
-            const encryptedInput = Buffer.from(confB64, "base64");
-            const {plain, salt} = decryptConf(encryptedInput, version);
+            // Entschlüsseln und Basis-Konfiguration extrahieren
+            const { conf, serializeToB64 } = processEncryptedConf({
+                confB64,
+                version,
+                signatures,
+                deserialize,
+                serialize,
+                uuid
+            });
 
-            // Überprüfe die Signatur am Anfang der Konfiguration
-            const signature = plain.readUInt32BE(0);
-
-            // Dekodiere und mappe die Frontend-Werte zu internen Schlüsseln
+            // Neue Werte vom Client übernehmen
             const newValues = decodeAndMapAliases(values, fieldMap);
-
-            // Deserialisiere die Konfiguration basierend auf der erkannten Signatur
-            let conf;
-            if (signature === signatures.v1) {
-                conf = deserialize(plain);
-            } else {
-                return res.status(400).json({error: `Unbekannte Signatur: ${signature}`});
-            }
-
-            // Aktualisiere die Konfiguration mit den neuen Werten
             mergeConf(conf, newValues);
 
-            // Serialisiere die aktualisierte Konfiguration mit der ursprünglichen Signatur
-            const serialized = serialize(conf, signature);
-
-            // Konvertiere die UUID in ein Byte-Array
-            const uuidBytes = uuidToBytes(uuid);
-
-            // Füge die UUID-Bytes an die serialisierte Konfiguration an (wichtig für die Server-Authentifizierung)
-            const finalBuffer = Buffer.concat([serialized, uuidBytes]);
-
-            // Verschlüssele die Daten mit dem ursprünglichen Salt und konvertiere zu Base64
-            const {encrypted} = encryptedConf(finalBuffer, salt, version);
-            const resultConfB64 = encrypted.toString('base64');
-
             // Datenbank speichern (nur für ebike/mc)
-            try {
-                await writeConfigToDb(configType, hw, uuid, conf, metadata);
-            } catch (err) {
-                return next(err);
-            }
+            await writeConfigToDb(configType, hw, uuid, conf, metadata);
 
-            // Erfolgreiche Antwort mit der aktualisierten Konfiguration
+            // Neue Konfiguration verschlüsseln & serialisieren
+            const resultConfB64 = serializeToB64(conf);
+
+            // Erfolgreiche Antwort
             res.json({
                 uuid,
                 version,
@@ -350,7 +414,7 @@ module.exports = () => {
 
     // Dynamisch Getter-Routen registrieren
     for (const [path, get_config] of Object.entries(GET_CONFIG_MAP)) {
-        router.post(`/${path}`, createGetConfigHandler(get_config));
+        router.post(`/${path}`, createGetConfigHandler(get_config, path));
     }
 
     // Dynamisch Setter-Routen registrieren

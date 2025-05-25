@@ -13,24 +13,35 @@ function versionLt(a, b) {
 }
 
 function mergeConf(conf, newValues) {
+    let changed = false;
+
     for (const key of Object.keys(newValues)) {
+        const newVal = newValues[key];
+        const oldVal = conf[key];
+
         if (
-            typeof newValues[key] === "object" &&
-            newValues[key] !== null &&
-            !Array.isArray(newValues[key]) &&
-            typeof conf[key] === "object" &&
-            conf[key] !== null &&
-            !Array.isArray(conf[key])
+            typeof newVal === "object" &&
+            newVal !== null &&
+            !Array.isArray(newVal) &&
+            typeof oldVal === "object" &&
+            oldVal !== null &&
+            !Array.isArray(oldVal)
         ) {
-            // Rekursives Mergen für verschachtelte Objekte
-            mergeConf(conf[key], newValues[key]);
+            // Rekursiv mergen
+            if (mergeConf(oldVal, newVal)) changed = true;
         } else {
-            // Einfacher Wert oder überschreiben
-            conf[key] = newValues[key];
+            // Vergleichen, nur wenn unterschiedlich setzen
+            if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+                conf[key] = newVal;
+                changed = true;
+            }
         }
     }
-    return conf;
+
+    return changed;
 }
+
+
 
 function decodeAndMapAliases(values, fieldMap) {
     const aliasToKey = {};

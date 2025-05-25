@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const { logFailedAndMaybeBlock } = require("@log");
 const { userDb, logDb } = require("@databases");
 const { url, secret_key } = require("@config");
-const { buildInsertQuery, buildUpdateQuery } = require("@databases/sqlBuilder");
+const { buildInsertQuery, buildUpdateQuery } = require("@databases/dbUtils");
 const userFields = require("@databases/userFields");
 
 module.exports = () => {
@@ -52,7 +52,7 @@ module.exports = () => {
             }
 
             const isMatch = await bcrypt.compare(password, user.password);
-            const isCpuMatch = user.cpu_id === cpu_id;
+            let isCpuMatch = user.cpu_id === cpu_id;
             const isActive = user.active === 1;
 
             if (!isMatch || !isCpuMatch || !isActive) {

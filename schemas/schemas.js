@@ -40,7 +40,8 @@ module.exports = {
         name: "Controller",
         schema: `CREATE TABLE IF NOT EXISTS controller (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    engine_id INTEGER)`,
+                    engine_id INTEGER,
+                    active BOOLEAN DEFAULT 0)`,
         extendedColumns: METADATA_EBIKE
     },
     engine: {
@@ -50,6 +51,7 @@ module.exports = {
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     serial_no TEXT NOT NULL,
                     controller_id INTEGER,
+                    active BOOLEAN DEFAULT 0,
                     mileage_km INTEGER NOT NULL DEFAULT 0)`,
         extendedColumns: METADATA_MC
     }

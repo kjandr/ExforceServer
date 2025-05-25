@@ -1,5 +1,6 @@
 const { METADATA_MC } = require("../../../../conf_data/confMcFields");
 const { createBufferReaders, convertIndexToEnum } = require("./Helper");
+const {convertArrayToString} = require("./helper");
 
 
 function deserializeMcconf_old(buffer) {
@@ -363,6 +364,8 @@ function deserializeMcconf_V1(buffer) {
     // 1. uint32_t MCCONF_SIGNATURE
     conf.signature = readUInt32();
 
+    conf.serial_no = convertArrayToString(readArray(16));
+
     conf.l_current_max = readFloat32Auto();
     conf.l_in_current_max = readFloat32Auto();
     conf.l_in_current_min = readFloat32Auto();
@@ -385,7 +388,7 @@ function deserializeMcconf_V1(buffer) {
     conf.foc_encoder_inverted = readUInt8();
     conf.foc_encoder_offset = readFloat32Auto();
     conf.foc_encoder_ratio = readFloat32Auto();
-    conf.foc_sensor_mode = readUInt8();
+    conf.foc_sensor_mode = convertIndexToEnum(readUInt8(), METADATA_MC.foc_sensor_mode.enums);
 
     conf.foc_motor_l = readFloat32Auto();
     conf.foc_motor_r = readFloat32Auto();
@@ -398,6 +401,8 @@ function deserializeMcconf_V1(buffer) {
     conf.si_battery_cells = convertIndexToEnum(readUInt8() - 10, METADATA_MC.si_battery_cells.enums);
 
     conf.si_battery_ah = readFloat32Auto();
+
+    conf.foc_openloop_rpm = readFloat32Auto();
 
     return conf;
 }

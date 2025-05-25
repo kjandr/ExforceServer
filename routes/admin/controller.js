@@ -2,7 +2,7 @@ const express = require("express");
 const { controllerDb } = require("@databases");
 const loadDevices = require("@utils/loadDevices");
 const controllerFields = require("@databases/controllerFields");
-const { buildInsertQuery, buildUpdateQuery } = require("@databases/sqlBuilder");
+const { buildInsertQuery, buildUpdateQuery } = require("@databases/dbUtils");
 const isApiCall = require("@utils/isApiCall");
 
 module.exports = () => {

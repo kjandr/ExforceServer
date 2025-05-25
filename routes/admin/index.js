@@ -13,7 +13,7 @@ const AdminJS = require('adminjs');
 const AdminJSExpress = require('@adminjs/express');
 const { Sequelize, DataTypes } = require('sequelize');
 const AdminJSSequelize = require('@adminjs/sequelize')
-
+const { getTables, generateModelFromDb } = require("@databases/dbUtils");
 
 // AdminJS Setup
 AdminJS.registerAdapter({
@@ -21,92 +21,11 @@ AdminJS.registerAdapter({
     Resource: AdminJSSequelize.Resource,
 })
 
-// Funktion zum Abrufen aller Tabellen in einer SQLite-Datenbank
-async function getTablesFromDb(db) {
-    return new Promise((resolve, reject) => {
-        db.all("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';", (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows.map(row => row.name));
-        });
-    });
-}
-
-// Eine Funktion, die die Tabellenspalten aus der Datenbank liest und ein Sequelize-Modell generiert
-async function generateModelFromDb(sequelize, db, tableName) {
-    console.log(`Generiere Modell für ${tableName} aus der Datenbank...`);
-
-    // Funktion, um SQL-Abfragen auf der SQLite-Datenbank auszuführen
-    function allAsync(sql, params = []) {
-        return new Promise((resolve, reject) => {
-            db.all(sql, params, (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
-        });
-    }
-
-    try {
-        // Spaltendefinitionen aus der Datenbank lesen
-        const columns = await allAsync(`PRAGMA table_info(${tableName})`);
-
-        if (columns.length === 0) {
-            console.error(`❌ Keine Spalten für Tabelle ${tableName} gefunden!`);
-            return null;
-        }
-
-        // Modell-Attribute aus den Spalteninformationen erstellen
-        const modelAttributes = {};
-
-        columns.forEach(column => {
-            const { name, type, pk, notnull, dflt_value } = column;
-
-            // SQLite-Datentyp in Sequelize-Datentyp umwandeln
-            let dataType;
-            if (type.toUpperCase().includes('INT')) {
-                dataType = DataTypes.INTEGER;
-            } else if (type.toUpperCase().includes('CHAR') || type.toUpperCase().includes('TEXT')) {
-                dataType = DataTypes.STRING;
-            } else if (type.toUpperCase().includes('REAL') || type.toUpperCase().includes('FLOA') || type.toUpperCase().includes('DOUB')) {
-                dataType = DataTypes.FLOAT;
-            } else if (type.toUpperCase().includes('BOOL')) {
-                dataType = DataTypes.BOOLEAN;
-            } else if (type.toUpperCase().includes('DATE') || type.toUpperCase().includes('TIME')) {
-                dataType = DataTypes.DATE;
-            } else {
-                dataType = DataTypes.STRING; // Standardwert
-            }
-
-            modelAttributes[name] = {
-                type: dataType,
-                primaryKey: pk === 1,
-                allowNull: notnull === 0,
-                defaultValue: dflt_value // Standardwert aus der Datenbank
-            };
-
-            // Autoincrement für Integer-Primärschlüssel
-            if (pk === 1 && type.toUpperCase().includes('INT')) {
-                modelAttributes[name].autoIncrement = true;
-            }
-        });
-
-        // Modell definieren
-        const model = sequelize.define(tableName, modelAttributes, {
-            tableName: tableName,
-            timestamps: false // Keine Zeitstempel, falls nicht explizit in der Tabelle vorhanden
-        });
-
-        console.log(`✅ Modell für Tabelle ${tableName} erfolgreich aus Datenbank generiert`);
-        return model;
-    } catch (error) {
-        console.error(`❌ Fehler bei der Modellgenerierung für ${tableName}:`, error.message);
-        return null;
-    }
-}
 
 // Funktion zum Generieren aller Modelle aus einer Datenbank
 async function generateAllModelsFromDb(sequelize, db) {
     try {
-        const tables = await getTablesFromDb(db);
+        const tables = await getTables(db);
         console.log(`Gefundene Tabellen: ${tables.join(', ')}`);
 
         const models = {};

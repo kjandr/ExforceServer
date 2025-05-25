@@ -1,25 +1,7 @@
 const express = require("express");
 const { controllerDb } = require("@databases");
+const { runAsync, allAsync }  = require("@databases/dbUtils");
 
-// Helfer für Promises bei Queries mit Rückgabe von rows
-function allAsync(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        controllerDb.all(sql, params, (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-        });
-    });
-}
-
-// Helfer für Promises bei run (liefert lastID und changes)
-function runAsync(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        controllerDb.run(sql, params, function (err) {
-            if (err) reject(err);
-            else resolve({ lastID: this.lastID, changes: this.changes });
-        });
-    });
-}
 
 // === Boolean-Konvertierung ===
 // ⬇️ Globale Liste aller booleschen Spalten
@@ -51,7 +33,7 @@ module.exports = () => {
         try {
             /* PRAGMA table_info liefert:
                cid | name | type | notnull | dflt_value | pk   */
-            const rows = await allAsync('PRAGMA table_info(controller)');
+            const rows = await allAsync(controllerDb, 'PRAGMA table_info(controller)');
             /* Wir interessieren uns meist nur für name & type */
             const columns = rows.map((r) => ({
                 name: r.name,
@@ -69,7 +51,7 @@ module.exports = () => {
     // GET /controllers – alle Controller auslesen
     router.get('/controllers', async (req, res, next) => {
         try {
-            const rows = await allAsync('SELECT * FROM controller');
+            const rows = await allAsync(controllerDb, 'SELECT * FROM controller');
             res.json({ controllers: rows.map(convertIntsToBool) });
             console.log(rows);
         } catch (err) {
@@ -97,7 +79,7 @@ module.exports = () => {
                 ', '
             )}) VALUES (${placeholders})`;
 
-            const result = await runAsync(sql, values);
+            const result = await runAsync(controllerDb, sql, values);
             res.json({ id: result.lastID });
         } catch (err) {
             next(err);
@@ -116,7 +98,7 @@ module.exports = () => {
             const values = columns.map((k) => input[k]).concat(id);
             const sql = `UPDATE controller SET ${setStmt} WHERE id = ?`;
 
-            const result = await runAsync(sql, values);
+            const result = await runAsync(controllerDb, sql, values);
             res.json({ updated: result.changes });
         } catch (err) {
             next(err);
@@ -127,10 +109,7 @@ module.exports = () => {
     router.delete('/controllers/:id', async (req, res, next) => {
         try {
             const { id } = req.params;
-            const result = await runAsync(
-                'DELETE FROM controller WHERE id = ?',
-                [id]
-            );
+            const result = await runAsync(controllerDb, 'DELETE FROM controller WHERE id = ?', [id]);
             res.json({ deleted: result.changes });
         } catch (err) {
             next(err);

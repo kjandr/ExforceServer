@@ -20,7 +20,7 @@ const METADATA_EBIKE = {
     wheelSize:           { type: "int", scale: 1, suffix: "mm", min: 300, max: 9999 },
     motorCurrent:        { type: "int", scale: 1, suffix: "A", min: 0, max: 140 },
 
-    display_parameter:   { type: "bool", suffix: "", defaultValue: false },
+    display_parameter:   { type: "bool", suffix: "" },
     maxAssistSteps:      { type: "int", scale: 1, suffix: "level", min: 0, max: 10 },
 
     maxMotorCurrent:     { type: "array", size: 11,  scale: 1, suffix: "A", min: 0, max: 10 },

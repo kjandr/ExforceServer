@@ -6,7 +6,7 @@ const { authenticateJWT, authorizeRole, validateUUID } = require("@middleware/au
 const { url, viewsPath, partialsPath } = require("@config");
 const cookieParser = require('cookie-parser');
 const {  engineDb, userDb, controllerDb, logDb, initializeTables } = require("@databases");
-const ensureColumnsExist = require("@utils/ensureColumnsExist");
+const { ensureColumnsExist } = require("@databases/dbUtils");
 
 
 // Express-App erstellen

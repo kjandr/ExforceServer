@@ -2,7 +2,6 @@ const {METADATA_EBIKE} = require("../../../../conf_data/confEbikeFields");
 const { createBufferReaders, convertArrayToString, convertIndexToEnum } = require("./Helper");
 
 function deserializeEbikeconf_V1(buffer) {
-    console.log(buffer);
     const readers = createBufferReaders(buffer);
     const {
         readUInt8, readInt16, readUInt16, readInt32, readUInt32,
@@ -33,14 +32,13 @@ function deserializeEbikeconf_V1(buffer) {
     conf.wheelSize      = readUInt16();
     conf.motorCurrent   = readUInt8();
 
-    conf.display_parameter = !!readUInt8();
+    conf.display_parameter = readUInt8() ? 1 : 0;
     conf.maxAssistSteps    = readUInt8();
 
     conf.maxMotorCurrent  = readArray(11);
     conf.maxMotorCurrent2 = readArray(11);
 
     conf.wattPadelecMode = convertIndexToEnum(readUInt8(), METADATA_EBIKE.wattPadelecMode.enums);
-    console.log(conf.wattPadelecMode);
 
     conf.senseCadence  = readArray(11);
     conf.senseCadence2 = readArray(11);

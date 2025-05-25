@@ -26,6 +26,7 @@ const METADATA_MC = {
     l_temp_fet_end:         { type: "double",   scale: 1, suffix: "°C", min: 40, max: 180, decimals: 1 },
     l_temp_motor_start:     { type: "double",   scale: 1, suffix: "°C", min: 40, max: 180, decimals: 1 },
     l_temp_motor_end:       { type: "double",   scale: 1, suffix: "°C", min: 40, max: 180, decimals: 1 },
+    foc_openloop_rpm:       { type: "double",   scale: 1, suffix: "erpm", min: 300, max: 100000, decimals: 2 },
 };
 
 // 2) Und hier das Mapping: Original‑Key → Alias‑Name + welche Meta‑Properties mitkommen
@@ -56,6 +57,7 @@ const FIELD_MAP_MC = {
     l_temp_fet_end:         { alias: "tempFetEnd",  meta: ["type","scale","min","max","decimals","suffix"] },
     l_temp_motor_start:     { alias: "tempMotorStart",meta: ["type","scale","min","max","decimals","suffix"] },
     l_temp_motor_end:       { alias: "tempMotorEnd",meta: ["type","scale","min","max","decimals","suffix"] },
+    foc_openloop_rpm:       { alias: "focOpenLoop", meta: ["type","scale","min","max","decimals","suffix"] },
 };
 
 module.exports = { METADATA_MC, FIELD_MAP_MC };
