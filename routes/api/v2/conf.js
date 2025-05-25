@@ -204,13 +204,25 @@ async function readConfigFromDb(configType, uuid, metadata) {
 
     const result = { ...row };
 
-    // Arrays aus JSON zurückwandeln (falls metadata verfügbar)
     for (const [key, value] of Object.entries(result)) {
-        if (metadata?.[key]?.type === "array" && typeof value === "string") {
+        const meta = metadata?.[key];
+
+        if (!meta) continue;
+
+        // Arrays zurückwandeln
+        if (meta.type === "array" && typeof value === "string") {
             try {
                 result[key] = JSON.parse(value);
             } catch {
-                // ungültiges JSON? ignorieren.
+                // ungültiges JSON → bleibt String
+            }
+        }
+
+        // Enums rückwandeln (Index → Text)
+        else if (meta.type === "enum" && Array.isArray(meta.enums)) {
+            const index = Number(value);
+            if (!isNaN(index) && meta.enums[index] !== undefined) {
+                result[key] = meta.enums[index];
             }
         }
     }
