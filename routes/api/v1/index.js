@@ -8,7 +8,7 @@ module.exports = () => {
     const router = express.Router();
 
     router.use((req, res, next) => {
-        console.log(`API V1-Route aufgerufen: ${req.method} ${req.originalUrl}`);
+        console.log(`[${new Date().toLocaleString()}] API V1-Route aufgerufen: ${req.method} ${req.originalUrl}`);
         next();
     });
 

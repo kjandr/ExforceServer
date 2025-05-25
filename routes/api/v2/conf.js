@@ -146,13 +146,30 @@ async function writeConfigToDb(configType, hw, uuid, conf, metadata) {
 
     const columns = await getColumnNames(db, table);
 
+    // Filtere nur gültige Spalten
     const filtered = Object.fromEntries(
         Object.entries(conf).filter(([key]) => columns.includes(key))
     );
 
+    // Transformiere Werte anhand der Metadaten
     for (const [key, value] of Object.entries(filtered)) {
-        if (metadata?.[key]?.type === "array" && Array.isArray(value)) {
+        const meta = metadata?.[key];
+
+        if (!meta) continue;
+
+        // Arrays als JSON speichern
+        if (meta.type === "array" && Array.isArray(value)) {
             filtered[key] = JSON.stringify(value);
+        }
+
+        // Enums als Index speichern
+        else if (meta.type === "enum" && Array.isArray(meta.enums)) {
+            const index = meta.enums.indexOf(String(value));
+            if (index !== -1) {
+                filtered[key] = index;
+            } else {
+                console.warn(`⚠️ Enum-Wert "${value}" nicht in ${key}.`);
+            }
         }
     }
 
@@ -227,6 +244,51 @@ function processEncryptedConf({ confB64, version, signatures, deserialize, seria
     return { conf, serializeToB64 };
 }
 
+function valuesAreEqual(meta, val1, val2) {
+    if (!meta) {
+        if (Array.isArray(val1) && Array.isArray(val2)) {
+            return JSON.stringify(val1) === JSON.stringify(val2);
+        }
+        return val1 === val2;
+    }
+
+    if (Array.isArray(val1) && Array.isArray(val2)) {
+        if (val1.length !== val2.length) return false;
+        for (let i = 0; i < val1.length; i++) {
+            if (!valuesAreEqual(meta, val1[i], val2[i])) return false;
+        }
+        return true;
+    }
+
+    switch (meta.type) {
+        case "double":
+            const scale = meta.scale ?? 1;
+            const decimals = meta.decimals ?? 2;
+            const scaledVal1 = Math.round(Number(val1) * scale * Math.pow(10, decimals));
+            const scaledVal2 = Math.round(Number(val2) * scale * Math.pow(10, decimals));
+            return scaledVal1 === scaledVal2;
+
+        case "enum":
+            const enums = meta.enums || [];
+
+            const normalizeToEnumIndex = (v) => {
+                if (typeof v === "string" && enums.includes(v)) {
+                    return enums.indexOf(v); // Text → Index
+                }
+                const i = Number(v);
+                return enums[i] !== undefined ? i : -1; // Index → Index (wenn gültig)
+            };
+
+            return normalizeToEnumIndex(val1) === normalizeToEnumIndex(val2);
+
+        case "bool":
+        case "boolean":
+            return Boolean(val1) === Boolean(val2);
+
+        default:
+            return val1 === val2;
+    }
+}
 
 /**
  * Erzeugt einen HTTP-Handler für POST-Anfragen zum Abrufen von Konfigurationen
@@ -287,13 +349,14 @@ function createGetConfigHandler({ deserialize, serialize, fieldMap, metadata, si
             if (dbValues) {
                 const dbOverrides = {};
                 for (const [key, dbVal] of Object.entries(dbValues)) {
-                    if (conf.hasOwnProperty(key)) {
+                    if (
+                        metadata.hasOwnProperty(key) &&      // nur Felder aus den Metadaten
+                        conf.hasOwnProperty(key)
+                    ) {
                         const controllerVal = conf[key];
 
-                        // Tief vergleichen: Arrays, Objekte, Primitive
-                        const isDifferent = Array.isArray(dbVal)
-                            ? JSON.stringify(dbVal) !== JSON.stringify(controllerVal)
-                            : dbVal !== controllerVal;
+                        const meta = metadata[key];
+                        const isDifferent = !valuesAreEqual(meta, dbVal, controllerVal);
 
                         if (isDifferent) {
                             dbOverrides[key] = dbVal;
@@ -303,12 +366,9 @@ function createGetConfigHandler({ deserialize, serialize, fieldMap, metadata, si
                 if (Object.keys(dbOverrides).length > 0) {
                     console.log("🔄 Änderungen aus DB übernommen:");
                     for (const key of Object.keys(dbOverrides)) {
-                        const original = conf[key];
-                        const fromDb = dbOverrides[key];
-
                         console.log(`  ${key}:`, {
-                            vorher: original,
-                            ausDB: fromDb
+                            vorher: conf[key],
+                            ausDB: dbOverrides[key]
                         });
                     }
 

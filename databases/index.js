@@ -36,13 +36,14 @@ async function initializeTables() {
         if (["controllerDb", "engineDb"].includes(db)) {
             await addConfFieldsToDb(database, tableName, extendedColumns);
 
-            const presets = [
-                getAllColumnsForTable(tableName, extendedColumns, "EX8_560"),
-                getAllColumnsForTable(tableName, extendedColumns, "G510.1000"),
-            ];
-            presets.forEach((preset, i) => {
-                console.log(`Preset ${i + 1} für ${tableName}:`, preset);
-            });
+            // TODO: preset?
+            // const presets = [
+            //     getAllColumnsForTable(tableName, extendedColumns, "EX8_560"),
+            //     getAllColumnsForTable(tableName, extendedColumns, "G510.1000"),
+            // ];
+            // presets.forEach((preset, i) => {
+            //     console.log(`Preset ${i + 1} für ${tableName}:`, preset);
+            // });
         }
     }
 }

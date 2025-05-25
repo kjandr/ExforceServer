@@ -5,12 +5,12 @@ const { getColumnNames, addColumnIfMissing } = require("@databases/dbUtils");
 
 // Gemeinsame Spalten für alle Geräte-Tabellen
 const standardDeviceColumns = [
-    { name: "id", type: "INTEGER PRIMARY KEY AUTOINCREMENT" },
     { name: "created_at", type: "DATETIME DEFAULT CURRENT_TIMESTAMP" },
     { name: "updated_at", type: "DATETIME DEFAULT CURRENT_TIMESTAMP" },
 ];
 
 const standardControllerColumns = [
+    { name: "active", type: "BOOLEAN DEFAULT 0" },
     { name: "user_id", type: "INTEGER NOT NULL DEFAULT -1" },
     { name: "remark", type: "TEXT" },
     { name: "type", type: "TEXT NOT NULL" },
@@ -20,6 +20,7 @@ const standardControllerColumns = [
 ];
 
 const standardEngineColumns = [
+    { name: "active", type: "BOOLEAN DEFAULT 0" },
     { name: "user_id", type: "INTEGER NOT NULL DEFAULT -1" },
     { name: "remark", type: "TEXT" },
     { name: "type", type: "TEXT NOT NULL" },
