@@ -15,6 +15,7 @@ const standardControllerColumns = [
     { name: "remark", type: "TEXT" },
     { name: "type", type: "TEXT NOT NULL" },
     { name: "uuid", type: "TEXT" },
+    { name: "version", type: "TEXT" },
     { name: "engine_id", type: "INTEGER" },
     { name: "operating_time", type: "INTEGER NOT NULL DEFAULT 0" }
 ];

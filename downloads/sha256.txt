@@ -1,0 +1,1 @@
+(Get-FileHash .\controller-X1-4.3.4.2.bin -Algorithm SHA256).Hash.ToLower()

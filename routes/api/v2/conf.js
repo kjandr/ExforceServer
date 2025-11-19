@@ -131,7 +131,7 @@ function controllerAktivation(conf, hwVersion) {
  * @param {string} uuid - UUID des Datensatzes
  * @param {object} conf - Deserialisierte Konfiguration
  */
-async function writeConfigToDb(configType, hw, uuid, conf, metadata) {
+async function writeConfigToDb(configType, hw, uuid, version, conf, metadata) {
     const db = configType === "ebike" ? controllerDb :
         configType === "mc" ? engineDb : null;
     const table = configType === "ebike" ? "controller" :
@@ -150,6 +150,11 @@ async function writeConfigToDb(configType, hw, uuid, conf, metadata) {
     const filtered = Object.fromEntries(
         Object.entries(conf).filter(([key]) => columns.includes(key))
     );
+
+    // Nur wenn configType "ebike" ist, füge version hinzu
+    if (configType === "ebike" && columns.includes("version")) {
+        filtered.version = version; // Speichere die Version ausschließlich für "ebike"
+    }
 
     // Transformiere Werte anhand der Metadaten
     for (const [key, value] of Object.entries(filtered)) {
@@ -237,6 +242,10 @@ function processEncryptedConf({ confB64, version, signatures, deserialize, seria
     if (!plain || plain.length < 4) {
         throw new Error("Ungültige oder zu kurze Konfigurationsdaten.");
     }
+
+    console.log(confB64);
+    console.log(encrypted);
+    console.log(plain);
 
     const signature = plain.readUInt32BE(0);
     if (signature !== signatures.v1) {
@@ -457,7 +466,7 @@ function createSetConfigHandler({ deserialize, serialize, fieldMap, signatures, 
             mergeConf(conf, newValues);
 
             // Datenbank speichern (nur für ebike/mc)
-            await writeConfigToDb(configType, hw, uuid, conf, metadata);
+            await writeConfigToDb(configType, hw, uuid, version, conf, metadata);
 
             // Neue Konfiguration verschlüsseln & serialisieren
             const resultConfB64 = serializeToB64(conf);
@@ -483,6 +492,28 @@ module.exports = () => {
     // Body-Parser konfigurieren
     router.use(express.json({ limit: "1mb" }));
 
+    // Buttons-Definitionen zurückgeben (POST)
+    router.post("/mc/button", (req, res) => {
+        res.json({
+            type: "mc",
+            url: "conf/mc",
+            idRead: "3412",
+            idWrite: "7817",
+            titleFirst: "read: MC",
+            titleSecond: "write: MC"
+        });
+    });
+
+    router.post("/ebike/button", (req, res) => {
+        res.json({
+            type: "ebike",
+            url: "conf/ebike",
+            idRead: "5492",
+            idWrite: "8992",
+            titleFirst: "read: eBike",
+            titleSecond: "write: eBike"
+        });
+    });
 
     // Dynamisch Getter-Routen registrieren
     for (const [path, get_config] of Object.entries(GET_CONFIG_MAP)) {

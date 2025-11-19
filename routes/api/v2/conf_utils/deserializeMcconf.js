@@ -402,7 +402,7 @@ function deserializeMcconf_V1(buffer) {
 
     conf.si_battery_ah = readFloat32Auto();
 
-    conf.foc_openloop_rpm = readFloat32Auto();
+    conf.foc_sl_erpm = readFloat32Auto();
 
     return conf;
 }

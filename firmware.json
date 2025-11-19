@@ -1,54 +1,110 @@
 {
   "controller": {
-    "EX8_560": {
-      "version": "4.0.0.8",
-      "url": "http://localhost:50837/update/ex8-560-4.0.0.9.bin",
-      "checksum": "111aaa222bbb333ccc",
+    "X1": {
+      "version": "4.3.4.9",
+      "url": "update/controller/X1/X1-4.3.4.8.bin",
+      "size": 142528,
+      "checksum": "E723F07CB52078599D4CB5E601CE5E3573C948DFB92F7EC9E81CC5D346559889",
       "beta": {
-        "version": "3.0.0.0",
-        "url": "http://localhost:50837/update/ex8-560-3.0.0.0-beta.bin",
-        "checksum": "444ddd555eee666fff"
+        "version": "4.3.4.6",
+        "url": "update/controller/X1/X1-4.3.4.5-beta1.bin",
+        "size": 143000,
+        "checksum": "1caae2421c6fde8e2425de68ca096ef0e634dca291c29b4dcdb27f3edbac5b8f"
+      }
+    },
+    "X3_560": {
+      "version": "4.3.4.12",
+      "url": "update/controller/X3_560/X3_560-4.3.4.11.bin",
+      "size": 142528,
+      "checksum": "110F0DECF68E6CC749929709CDD8341406F3D507F872CE014465524D58EC933B",
+      "beta": {
+        "version": "4.3.4.6",
+        "url": "update/controller/X3_560/X3_560-4.3.4.5-beta1.bin",
+        "size": 143000,
+        "checksum": "bcce9cfad13cc5a513ed1387de3e8ef00f8bac6b1e8f3c1f03444c9798aa361e"
+      }
+    },
+    "X3_560r2": {
+      "version": "4.3.4.5",
+      "url": "update/controller/X3_560r2/X3_560r2-4.3.4.5.bin",
+      "size": 142528,
+      "checksum": "bcce9cfad13cc5a513ed1387de3e8ef00f8bac6b1e8f3c1f03444c9798aa361e",
+      "beta": {
+        "version": "4.3.4.6",
+        "url": "update/controller/X3_560r2/X3_560r2-4.3.4.5-beta1.bin",
+        "size": 143000,
+        "checksum": "bcce9cfad13cc5a513ed1387de3e8ef00f8bac6b1e8f3c1f03444c9798aa361e"
       }
     },
     "EX8_620": {
-      "version": "2.0.0.0",
-      "url": "http://localhost:50837/update/ex8-620-2.0.0.0.bin",
-      "checksum": "444ddd555eee666fff",
+      "version": "4.3.4.5",
+      "url": "update/controller/EX8_620/EX8_620-4.3.4.5.bin",
+      "checksum": "bcce9cfad13cc5a513ed1387de3e8ef00f8bac6b1e8f3c1f03444c9798aa361e",
       "beta": {
-        "version": "3.0.0.0",
-        "url": "http://localhost:50837/update/ex8-620-3.0.0.0-beta.bin",
-        "checksum": "444ddd555eee666fff"
+        "version": "4.3.4.6",
+        "url": "update/controller/EX8_620/EX8_620-4.3.4.5-beta1.bin",
+        "checksum": "bcce9cfad13cc5a513ed1387de3e8ef00f8bac6b1e8f3c1f03444c9798aa361e"
+      }
+    },
+    "EX8_620c": {
+      "version": "4.3.4.5",
+      "url": "update/controller/EX8_620c/EX8_620c-4.3.4.5.bin",
+      "checksum": "bcce9cfad13cc5a513ed1387de3e8ef00f8bac6b1e8f3c1f03444c9798aa361e",
+      "beta": {
+        "version": "4.3.4.6",
+        "url": "update/controller/EX8_620c/EX8_620c-4.3.4.5-beta1.bin",
+        "checksum": "bcce9cfad13cc5a513ed1387de3e8ef00f8bac6b1e8f3c1f03444c9798aa361e"
+      }
+    },
+    "EX8_560": {
+      "version": "4.3.4.12",
+      "url": "update/controller/EX8_560/EX8_560-4.3.4.11.bin",
+      "checksum": "29A973F82491D6EF9D8227A0897DE6CC1CB9C76B23A04110B2A54C674F2A43C7",
+      "beta": {
+        "version": "4.3.4.6",
+        "url": "update/controller/EX8_560/EX8_560-4.3.4.5-beta1.bin",
+        "checksum": "bcce9cfad13cc5a513ed1387de3e8ef00f8bac6b1e8f3c1f03444c9798aa361e"
+      }
+    },
+    "EX8_560r2": {
+      "version": "4.3.4.5",
+      "url": "update/controller/EX8_560r2/EX8_560r2-4.3.4.5.bin",
+      "checksum": "bcce9cfad13cc5a513ed1387de3e8ef00f8bac6b1e8f3c1f03444c9798aa361e",
+      "beta": {
+        "version": "4.3.4.6",
+        "url": "update/controller/EX8_560r2/EX8_560r2-4.3.4.5-beta1.bin",
+        "checksum": "bcce9cfad13cc5a513ed1387de3e8ef00f8bac6b1e8f3c1f03444c9798aa361e"
       }
     }
   },
   "pc": {
-    "version": "2.0.0.0",
-    "url": "http://localhost:50837/update/pc-2.0.0.0.zip",
-    "checksum": "444ddd555eee666fff",
+    "version": "0.8.0.1",
+    "url": "update/pc/PC-0.8.0.1.zip",
+    "checksum": "bcce9cfad13cc5a513ed1387de3e8ef00f8bac6b1e8f3c1f03444c9798aa361e",
     "beta": {
-      "version": "3.0.0.0",
-      "url": "http://localhost:50837/update/pc-3.0.0.0-beta.zip",
-      "checksum": "444ddd555eee666fff"
+      "version": "0.8.0.1",
+      "url": "update/pc/PC-0.8.0.1-beta1.zip",
+      "checksum": "bcce9cfad13cc5a513ed1387de3e8ef00f8bac6b1e8f3c1f03444c9798aa361e"
     }
   },
   "mobile": {
     "version": "2.0.0.0",
-    "url": "http://localhost:50837/update/mobile-2.0.0.0.zip",
-    "checksum": "444ddd555eee666fff",
+    "url": "update/mobile/MOBILE-2.0.0.0.zip",
+    "checksum": "bcce9cfad13cc5a513ed1387de3e8ef00f8bac6b1e8f3c1f03444c9798aa361e",
     "beta": {
       "version": "3.0.0.0",
-      "url": "http://localhost:50837/update/mobile-3.0.0.0-beta.zip",
-      "checksum": "444ddd555eee666fff"
+      "url": "update/mobile/MOBILE-3.0.0.0-beta.zip",
+      "checksum": "bcce9cfad13cc5a513ed1387de3e8ef00f8bac6b1e8f3c1f03444c9798aa361e"
     }
   },
   "gateway": {
-    "version": "2.0.0.0",
-    "url": "http://localhost:50837/update/gateway-2.0.0.0.bin",
-    "checksum": "444ddd555eee666fff",
+    "version": "1.0.0.3",
+    "url": "update/gateway/GATEWAY-1.0.0.2.bin",
+    "checksum": "F7E079BC43E2EF3CA6B72F495AB7891D570A3E28D63711B0A0E777B3DA392D55",
     "beta": {
-      "version": "3.0.0.0",
-      "url": "http://localhost:50837/update/gateway-3.0.0.0-beta.bin",
-      "checksum": "444ddd555eee666fff"
+      "version": "0.9.1.0",
+      "url": "update/gateway/GATEWAY-0.9.1.0-beta.bin",
+      "checksum": "bcce9cfad13cc5a513ed1387de3e8ef00f8bac6b1e8f3c1f03444c9798aa361e"
     }
   }
 }

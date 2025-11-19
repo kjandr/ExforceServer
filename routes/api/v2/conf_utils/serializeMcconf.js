@@ -389,7 +389,7 @@ function serializeMcconf_V1(conf, signature) {
 
     writeFloat32Auto(conf.si_battery_ah);
 
-    writeFloat32Auto(conf.foc_openloop_rpm);
+    writeFloat32Auto(conf.foc_sl_erpm);
 
     // Concatenate and return a single Buffer
     return writers.getBuffer();  // Korrigiert: offset zu parts geändert

@@ -8,7 +8,9 @@ module.exports = () => {
     const router = express.Router();
 
     router.use((req, res, next) => {
-        console.log(`[${new Date().toLocaleString()}] API V1-Route aufgerufen: ${req.method} ${req.originalUrl}`);
+        // Hole die IP-Adresse des Clients
+        const clientIp = req.ip;
+        console.log(`[${new Date().toLocaleString()}] API V1-Route aufgerufen: ${req.method} ${req.originalUrl} von IP: ${clientIp}`);
         next();
     });
 

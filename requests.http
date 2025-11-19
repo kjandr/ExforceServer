@@ -1,3 +1,128 @@
+### 1) Login – Token holen
+POST http://localhost:50837/api/v2/user/login
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "password": "123",
+  "cpu_id": "0987654321"
+}
+
+> {%
+    client.test("Login 200", () => client.assert(response.status === 200, "Status " + response.status));
+    const tok = response.body?.token ?? response.body?.data?.token ?? "";
+    client.test("Token da", () => client.assert(!!tok, "Kein Token"));
+    client.global.set("access_token", tok);
+
+    // Controller-Typ zentral konfigurieren (entspricht dem Beispiel „x1000“)
+    client.global.set("controller_type", "X1");   // ggf. auf „X1“ ändern
+%}
+
+### 2) CHECK – Infos einsammeln (nur zum Ableiten der URLs/Versionen)
+GET http://localhost:50837/api/v2/update/check?type={{controller_type}}&controller=0.0.0.0&pc=0.0.0&gateway=0.0.0&beta=true
+Authorization: Bearer {{access_token}}
+Accept: application/json
+
+> {%
+    client.test("CHECK 200", () => client.assert(response.status === 200, "Status " + response.status));
+
+    const body = response.body || {};
+    const type = client.global.get("controller_type");
+    const ctrl = body?.controller?.[type] || {};
+    const pc   = body?.pc || {};
+    const gw   = body?.gateway || {};
+
+    // ---- URLs gemäß BEISPIEL-AUFRUFEN vorbereiten ----
+    // 1) Controller Release – neueste (ohne version, nur component=controller&type=...)
+    const ctrlReleaseUrl = `http://localhost:50837/api/v2/update/download?component=controller&type=${encodeURIComponent(type)}`;
+
+    // 2) Controller Beta – neueste (nur wenn Beta existiert; sonst fallback auf Release)
+    const hasBeta = !!ctrl?.beta;
+    const ctrlBetaUrl = hasBeta
+        ? `http://localhost:50837/api/v2/update/download?component=controller&type=${encodeURIComponent(type)}&beta=true`
+        : ctrlReleaseUrl;
+
+    // 3) PC bestimmte Version – nimm die im CHECK gemeldete Release-Version
+    const pcVersion = String(pc?.version || "").trim();
+    client.test("PC-Version vorhanden", () => client.assert(!!pcVersion, "Keine PC-Version im CHECK"));
+    const pcUrl = `http://localhost:50837/api/v2/update/download?component=pc&version=${encodeURIComponent(pcVersion)}`;
+
+    // 4) Gateway – serverseitiges Streaming (redirect=false), ohne Versionsangabe → latest
+    const gwUrl = `http://localhost:50837/api/v2/update/download?component=gateway&redirect=false`;
+
+    // Globale Variablen setzen
+    client.global.set("dl_controller_release", ctrlReleaseUrl);
+    client.global.set("dl_controller_beta",    ctrlBetaUrl);
+    client.global.set("dl_pc",                 pcUrl);
+    client.global.set("dl_gateway_stream",     gwUrl);
+
+    // Info für die Ausgabe
+    client.log("Controller Release URL: " + ctrlReleaseUrl);
+    client.log("Controller Beta URL:    " + ctrlBetaUrl + (hasBeta ? "" : "  (Fallback auf Release, da keine Beta im CHECK)"));
+    client.log("PC URL:                 " + pcUrl);
+    client.log("Gateway URL:            " + gwUrl);
+%}
+
+### 3) DOWNLOAD – Controller (Release, neueste)
+GET {{dl_controller_release}}
+Authorization: Bearer {{access_token}}
+Accept: application/octet-stream
+
+> {%
+    client.test("Controller Release Download ok", () =>
+        client.assert([200,206].includes(response.status),
+            "Download fehlgeschlagen: Status " + response.status + "  URL=" + client.global.get("dl_controller_release")));
+%}
+
+### 4) DOWNLOAD – Controller (Beta, neueste – nur Admin; sonst Fallback)
+GET {{dl_controller_beta}}
+Authorization: Bearer {{access_token}}
+Accept: application/octet-stream
+
+> {%
+    client.test("Controller Beta/Release Download ok", () =>
+        client.assert([200,206].includes(response.status),
+            "Download fehlgeschlagen: Status " + response.status + "  URL=" + client.global.get("dl_controller_beta")));
+%}
+
+### 5) DOWNLOAD – PC (explizite Version aus CHECK)
+GET {{dl_pc}}
+Authorization: Bearer {{access_token}}
+Accept: application/octet-stream
+
+> {%
+    client.test("PC Download ok", () =>
+        client.assert([200,206].includes(response.status),
+            "Download fehlgeschlagen: Status " + response.status + "  URL=" + client.global.get("dl_pc")));
+%}
+
+### 6) DOWNLOAD – Gateway (streaming via redirect=false, neueste)
+GET {{dl_gateway_stream}}
+Authorization: Bearer {{access_token}}
+Accept: application/octet-stream
+
+> {%
+    client.test("Gateway Download ok", () =>
+        client.assert([200,206].includes(response.status),
+            "Download fehlgeschlagen: Status " + response.status + "  URL=" + client.global.get("dl_gateway_stream")));
+%}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -6,14 +6,29 @@ const userRoutes = require("./user");
 const updateRoutes = require("./update");
 const confRoutes = require("./conf");
 const dbRoutes = require("./db");
+const { createTimeTokenHandler } = require("./time.controller");
 
 module.exports = () => {
     const router = express.Router();
 
     router.use((req, res, next) => {
-        console.log(`[${new Date().toLocaleString()}] API V2-Route aufgerufen: ${req.method} ${req.originalUrl}`);
+        // Hole die IP-Adresse des Clients
+        const clientIp = req.ip;
+        console.log(`[${new Date().toLocaleString()}] API V2-Route aufgerufen: ${req.method} ${req.originalUrl} von IP: ${clientIp}`);
         next();
     });
+
+    router.get("/testip", (req, res) => {
+        res.json({
+            ip: req.ip,
+            ips: req.ips,
+            forwarded: req.headers['x-forwarded-for'] || null,
+            realip: req.headers['x-real-ip'] || null,
+            allHeaders: req.headers
+        });
+    });
+
+    router.post("/time-token", createTimeTokenHandler);
 
     // API V2-Subrouten definieren
     router.use("/user", userRoutes());

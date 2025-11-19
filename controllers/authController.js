@@ -23,6 +23,11 @@ exports.getLoginPage = (req, res) => {
 exports.login = (req, res) => {
     const { email, password } = req.body;
 
+    // Holen der Client-IP-Adresse
+    const clientIp = req.ip;
+
+    console.log("IP-Adresse des Clients:", clientIp);
+
     // Input-Validierung
     if (!email || !password) {
         return res.render('login', { error: 'Bitte E-Mail und Passwort eingeben.' });

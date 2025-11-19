@@ -19,6 +19,7 @@ app.use(cookieParser());
 
 app.set('etag', false);
 app.set('trust proxy', true);
+//app.set('trust proxy', 'loopback, 192.168.1.0/16');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.urlencoded({ extended: true })); //axios
